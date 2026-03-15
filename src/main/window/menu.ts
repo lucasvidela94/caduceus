@@ -1,4 +1,5 @@
 import { Menu, MenuItemConstructorOptions, BrowserWindow } from "electron";
+import { ROUTES } from "../../renderer/shared/lib/routes";
 
 export const setupMenu = (): void => {
   const template: MenuItemConstructorOptions[] = [
@@ -8,38 +9,17 @@ export const setupMenu = (): void => {
         {
           label: "Dashboard",
           accelerator: "CmdOrCtrl+D",
-          click: () => {
-            const win = BrowserWindow.getFocusedWindow();
-            if (win !== null) {
-              win.webContents.executeJavaScript(`
-                window.location.hash = "/";
-              `);
-            }
-          }
+          click: () => navigateTo(ROUTES.HOME)
         },
         {
           label: "Lista de Pacientes",
           accelerator: "CmdOrCtrl+L",
-          click: () => {
-            const win = BrowserWindow.getFocusedWindow();
-            if (win !== null) {
-              win.webContents.executeJavaScript(`
-                window.location.hash = "/patients";
-              `);
-            }
-          }
+          click: () => navigateTo(ROUTES.PATIENTS.LIST)
         },
         {
           label: "Nuevo Paciente",
           accelerator: "CmdOrCtrl+N",
-          click: () => {
-            const win = BrowserWindow.getFocusedWindow();
-            if (win !== null) {
-              win.webContents.executeJavaScript(`
-                window.location.hash = "/patients/new";
-              `);
-            }
-          }
+          click: () => navigateTo(ROUTES.PATIENTS.NEW)
         },
         { type: "separator" },
         {
@@ -102,12 +82,12 @@ export const setupMenu = (): void => {
       label: "Ayuda",
       submenu: [
         {
-          label: "Acerca de Medicos Desktop",
+          label: "Acerca de Caduceus",
           click: () => {
             const win = BrowserWindow.getFocusedWindow();
             if (win !== null) {
               win.webContents.executeJavaScript(`
-                alert("Medicos Desktop v0.1.0\\n\\nApp para gestion medica");
+                alert("Caduceus v0.1.0\\n\\nApp para gestion medica");
               `);
             }
           }
@@ -118,4 +98,13 @@ export const setupMenu = (): void => {
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
+};
+
+const navigateTo = (route: string): void => {
+  const win = BrowserWindow.getFocusedWindow();
+  if (win !== null) {
+    win.webContents.executeJavaScript(`
+      window.location.hash = "${route}";
+    `);
+  }
 };

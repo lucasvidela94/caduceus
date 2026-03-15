@@ -1,35 +1,27 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
-import type { ReactElement } from "react";
-import "./layout.css";
+import { Outlet } from "react-router-dom";
+import { AppSidebar } from "./app-sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
-const NAV_ITEMS = [
-  { path: "/", label: "Dashboard" },
-  { path: "/patients", label: "Pacientes" },
-  { path: "/patients/new", label: "Nuevo Paciente" }
-] as const;
+import type { ReactElement } from "react";
 
 export const Layout = (): ReactElement => {
-  const location = useLocation();
-
   return (
-    <div className="layout">
-      <nav className="nav">
-        <ul className="nav-list">
-          {NAV_ITEMS.map((item) => (
-            <li key={item.path} className="nav-item">
-              <Link
-                to={item.path}
-                className={`nav-link ${location.pathname === item.path ? "nav-link--active" : ""}`}
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <main className="main">
-        <Outlet />
-      </main>
-    </div>
+    <SidebarProvider defaultOpen={true}>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger />
+          <Separator orientation="vertical" className="h-4" />
+        </header>
+        <main className="flex-1 p-6">
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 };
