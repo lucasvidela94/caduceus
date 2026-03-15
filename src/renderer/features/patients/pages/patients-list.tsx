@@ -2,15 +2,19 @@ import { useState, useEffect } from "react";
 import type { Patient } from "@shared/types";
 import type { ReactElement } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Breadcrumb } from "@/shared/components/breadcrumb";
 import { PageHeader } from "@/shared/components/page-header";
 import { PageContainer } from "@/shared/components/page-container";
 import { EmptyState } from "@/shared/components/empty-state";
 import { CardSkeleton } from "@/shared/components/loading-state";
 import { ROUTES, BREADCRUMB_MAP } from "@/shared/lib/routes";
+import { Mail, Phone, MapPin } from "lucide-react";
 
 export const PatientsList = (): ReactElement => {
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,6 +23,7 @@ export const PatientsList = (): ReactElement => {
       .getPatients()
       .then((data: Patient[]) => {
         setPatients(data);
+        setFilteredPatients(data);
         setLoading(false);
       })
       .catch((err: Error) => {
@@ -26,6 +31,23 @@ export const PatientsList = (): ReactElement => {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredPatients(patients);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = patients.filter(
+      (p) =>
+        p.name.toLowerCase().includes(query) ||
+        p.email?.toLowerCase().includes(query) ||
+        p.phone?.toLowerCase().includes(query) ||
+        p.address?.toLowerCase().includes(query)
+    );
+    setFilteredPatients(filtered);
+  }, [searchQuery, patients]);
 
   return (
     <PageContainer>
@@ -40,6 +62,16 @@ export const PatientsList = (): ReactElement => {
         }}
       />
 
+      <div className="max-w-md">
+        <Input
+          type="text"
+          placeholder="Buscar pacientes..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full"
+        />
+      </div>
+
       {loading && <CardSkeleton count={6} />}
 
       {error !== null && (
@@ -48,32 +80,56 @@ export const PatientsList = (): ReactElement => {
         </div>
       )}
 
-      {!loading && error === null && patients.length === 0 && (
+      {!loading && error === null && filteredPatients.length === 0 && (
         <EmptyState
-          title="No hay pacientes"
-          description="Comienza agregando tu primer paciente al sistema"
-          action={{
-            label: "Crear primer paciente",
-            onClick: () => window.location.hash = `#${ROUTES.PATIENTS.NEW}`
-          }}
+          title={searchQuery ? "No se encontraron pacientes" : "No hay pacientes"}
+          description={
+            searchQuery
+              ? "Intenta con otra búsqueda"
+              : "Comienza agregando tu primer paciente al sistema"
+          }
+          action={
+            !searchQuery
+              ? {
+                  label: "Crear primer paciente",
+                  onClick: () => (window.location.hash = `#${ROUTES.PATIENTS.NEW}`)
+                }
+              : undefined
+          }
         />
       )}
 
-      {!loading && error === null && patients.length > 0 && (
+      {!loading && error === null && filteredPatients.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {patients.map((patient) => (
-            <Card key={patient.id}>
+          {filteredPatients.map((patient) => (
+            <Card key={patient.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <CardTitle className="text-base">{patient.name}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-1">
-                <p className="text-sm text-muted-foreground">
-                  ID: {patient.id}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Registrado:{" "}
-                  {new Date(patient.created_at).toLocaleDateString()}
-                </p>
+              <CardContent className="space-y-2">
+                {patient.email && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="h-4 w-4" />
+                    <span className="truncate">{patient.email}</span>
+                  </div>
+                )}
+                {patient.phone && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                    <span>{patient.phone}</span>
+                  </div>
+                )}
+                {patient.address && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span className="truncate">{patient.address}</span>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-border">
+                  <p className="text-xs text-muted-foreground">
+                    Registrado: {new Date(patient.created_at).toLocaleDateString()}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ))}

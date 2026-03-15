@@ -1,23 +1,26 @@
 import { PatientRepository } from "../database/repositories/patient-repository";
 import type { Patient, PatientInput } from "../../shared/types";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^[\d\s\-\+\(\)]{7,20}$/;
+
 export const PatientService = {
   create: (input: PatientInput): Patient => {
-    if (!input.name || input.name.trim().length === 0) {
-      throw new Error("El nombre del paciente es requerido");
-    }
+    validateInput(input);
+    return PatientRepository.create({
+      name: input.name.trim(),
+      email: input.email?.trim() || undefined,
+      phone: input.phone?.trim() || undefined,
+      address: input.address?.trim() || undefined,
+      notes: input.notes?.trim() || undefined
+    });
+  },
 
-    const trimmedName = input.name.trim();
-    
-    if (trimmedName.length < 2) {
-      throw new Error("El nombre debe tener al menos 2 caracteres");
+  update: (id: number, input: Partial<PatientInput>): Patient => {
+    if (input.name !== undefined) {
+      validateInput({ ...input, name: input.name } as PatientInput);
     }
-
-    if (trimmedName.length > 100) {
-      throw new Error("El nombre no puede tener más de 100 caracteres");
-    }
-
-    return PatientRepository.create({ name: trimmedName });
+    return PatientRepository.update(id, input);
   },
 
   getAll: (): Patient[] => {
@@ -37,5 +40,37 @@ export const PatientService = {
     if (!deleted) {
       throw new Error(`No se pudo eliminar el paciente con ID ${id}`);
     }
+  }
+};
+
+const validateInput = (input: PatientInput): void => {
+  if (!input.name || input.name.trim().length === 0) {
+    throw new Error("El nombre del paciente es requerido");
+  }
+
+  const trimmedName = input.name.trim();
+  
+  if (trimmedName.length < 2) {
+    throw new Error("El nombre debe tener al menos 2 caracteres");
+  }
+
+  if (trimmedName.length > 100) {
+    throw new Error("El nombre no puede tener más de 100 caracteres");
+  }
+
+  if (input.email && input.email.trim().length > 0 && !EMAIL_REGEX.test(input.email)) {
+    throw new Error("El email no es válido");
+  }
+
+  if (input.phone && input.phone.trim().length > 0 && !PHONE_REGEX.test(input.phone)) {
+    throw new Error("El teléfono no es válido");
+  }
+
+  if (input.address && input.address.length > 255) {
+    throw new Error("La dirección no puede tener más de 255 caracteres");
+  }
+
+  if (input.notes && input.notes.length > 2000) {
+    throw new Error("Las notas no pueden tener más de 2000 caracteres");
   }
 };

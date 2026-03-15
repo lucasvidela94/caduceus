@@ -13,7 +13,11 @@
     "start": "pnpm build && electron .",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "author": "",
   "license": "MIT",
@@ -22,6 +26,7 @@
     "better-sqlite3": "^12.8.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.1",
     "lucide-react": "^0.577.0",
     "radix-ui": "^1.4.3",
     "react": "^19.2.4",
@@ -45,6 +50,7 @@
     "autoprefixer": "^10.4.27",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
+    "drizzle-kit": "^0.31.9",
     "electron": "^35.0.2",
     "electron-rebuild": "^3.2.9",
     "jsdom": "^28.1.0",

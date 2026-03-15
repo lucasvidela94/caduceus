@@ -3,7 +3,7 @@ import * as path from "path";
 import { createMainWindow } from "./window/window-manager";
 import { setupMenu } from "./window/menu";
 import { registerIpcHandlers } from "./ipc";
-import { runMigrations } from "./database/migrations";
+import { runMigrations, backupBeforeMigration } from "./database/connection";
 import { createBackup, cleanupOldBackups } from "./services/backup-service";
 
 const PLATFORM = {
@@ -14,7 +14,23 @@ const DB_PATH = path.join(process.cwd(), "caduceus.db");
 
 export const initializeApp = (): void => {
   app.whenReady().then(() => {
-    runMigrations();
+    // Backup before running migrations
+    try {
+      const backupPath = backupBeforeMigration();
+      console.log("Database backup created:", backupPath);
+    } catch (error) {
+      console.error("Failed to create backup before migration:", error);
+    }
+
+    // Run Drizzle migrations
+    try {
+      runMigrations();
+      console.log("Database migrations completed");
+    } catch (error) {
+      console.error("Migration failed:", error);
+      // Continue anyway - the app should still work with existing schema
+    }
+
     registerIpcHandlers();
     setupMenu();
     createMainWindow();

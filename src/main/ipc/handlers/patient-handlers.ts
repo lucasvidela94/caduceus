@@ -1,6 +1,7 @@
 import { ipcMain, BrowserWindow, type IpcMainInvokeEvent } from "electron";
 import { IPC_CHANNELS } from "../channels";
 import { PatientService } from "../../services/patient-service";
+import type { PatientInput } from "../../../shared/types";
 
 const validateSender = (event: IpcMainInvokeEvent): boolean => {
   const webContents = event.sender;
@@ -21,11 +22,11 @@ export const registerPatientHandlers = (): void => {
 
   ipcMain.handle(
     IPC_CHANNELS.ADD_PATIENT,
-    async (event: IpcMainInvokeEvent, name: string) => {
+    async (event: IpcMainInvokeEvent, input: PatientInput) => {
       if (!validateSender(event)) {
         throw new Error("Invalid sender");
       }
-      return PatientService.create({ name });
+      return PatientService.create(input);
     }
   );
 
@@ -36,6 +37,16 @@ export const registerPatientHandlers = (): void => {
         throw new Error("Invalid sender");
       }
       return PatientService.getById(id);
+    }
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.UPDATE_PATIENT,
+    async (event: IpcMainInvokeEvent, id: number, input: Partial<PatientInput>) => {
+      if (!validateSender(event)) {
+        throw new Error("Invalid sender");
+      }
+      return PatientService.update(id, input);
     }
   );
 

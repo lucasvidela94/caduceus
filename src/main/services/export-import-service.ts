@@ -2,22 +2,19 @@ import * as fs from "fs";
 import * as path from "path";
 import { PatientRepository } from "../database/repositories/patient-repository";
 import { getConnection } from "../database/connection";
+import type { Patient } from "../../shared/types";
 
 export interface ExportData {
   version: string;
   exportedAt: string;
-  patients: Array<{
-    id: number;
-    name: string;
-    created_at: string;
-  }>;
+  patients: Patient[];
 }
 
 export const exportToJSON = (filePath: string): void => {
   const patients = PatientRepository.findAll();
 
   const exportData: ExportData = {
-    version: "0.1.0",
+    version: "0.2.0",
     exportedAt: new Date().toISOString(),
     patients
   };
@@ -43,7 +40,13 @@ export const importFromJSON = (filePath: string): { imported: number; errors: st
   for (const patient of data.patients) {
     try {
       if (patient.name && typeof patient.name === "string") {
-        PatientRepository.create({ name: patient.name });
+        PatientRepository.create({
+          name: patient.name,
+          email: patient.email || undefined,
+          phone: patient.phone || undefined,
+          address: patient.address || undefined,
+          notes: patient.notes || undefined
+        });
         imported++;
       }
     } catch (error) {
@@ -57,8 +60,14 @@ export const importFromJSON = (filePath: string): { imported: number; errors: st
 export const exportToCSV = (filePath: string): void => {
   const patients = PatientRepository.findAll();
 
-  const header = "id,name,created_at";
-  const rows = patients.map((p) => `${p.id},"${p.name.replace(/"/g, '""')}","${p.created_at}"`);
+  const header = "id,name,email,phone,address,notes,created_at,updated_at";
+  const rows = patients.map((p) => {
+    const escapeCsv = (str: string | null) => {
+      if (!str) return "";
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+    return `${p.id},${escapeCsv(p.name)},${escapeCsv(p.email)},${escapeCsv(p.phone)},${escapeCsv(p.address)},${escapeCsv(p.notes)},${p.created_at},${p.updated_at}`;
+  });
 
   const csv = [header, ...rows].join("\n");
   fs.writeFileSync(filePath, csv, "utf8");
@@ -69,14 +78,15 @@ export const checkIntegrity = (): { ok: boolean; errors: string[] } => {
 
   try {
     const db = getConnection();
+    const sqlite = db.$client as { prepare: (sql: string) => { all: () => unknown[]; get: () => unknown } };
 
-    const patientCount = db.prepare("SELECT COUNT(*) as count FROM patients").get() as { count: number };
+    const patientCount = sqlite.prepare("SELECT COUNT(*) as count FROM patients").get() as { count: number };
     if (!patientCount || typeof patientCount.count !== "number") {
       errors.push("Invalid patient count result");
     }
 
-    const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as Array<{ name: string }>;
-    const requiredTables = ["patients", "sqlite_sequence"];
+    const tables = sqlite.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as Array<{ name: string }>;
+    const requiredTables = ["patients"];
     const existingTables = tables.map((t) => t.name);
 
     for (const required of requiredTables) {
@@ -85,12 +95,12 @@ export const checkIntegrity = (): { ok: boolean; errors: string[] } => {
       }
     }
 
-    const invalidPatients = db.prepare("SELECT COUNT(*) as count FROM patients WHERE name IS NULL OR name = ''").get() as { count: number };
+    const invalidPatients = sqlite.prepare("SELECT COUNT(*) as count FROM patients WHERE name IS NULL OR name = ''").get() as { count: number };
     if (invalidPatients.count > 0) {
       errors.push(`Found ${invalidPatients.count} patients with invalid names`);
     }
 
-    db.prepare("PRAGMA integrity_check").all();
+    sqlite.prepare("PRAGMA integrity_check").all();
   } catch (error) {
     errors.push(`Integrity check failed: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
