@@ -169,3 +169,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [shadcn/ui](https://ui.shadcn.com/) for the beautiful UI components
 - [Electron](https://www.electronjs.org/) for the desktop framework
 - [Tailwind CSS](https://tailwindcss.com/) for the styling system
+# caduceus
