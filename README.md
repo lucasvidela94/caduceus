@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lucasvidela94/caduceus/main/src/renderer/assets/images/logo.png" alt="Caduceus" width="128" height="128"/>
+  <img src="https://raw.githubusercontent.com/lucasvidela94/caduceus/refs/heads/master/src/renderer/assets/images/logo.png" alt="Caduceus" width="128" height="128"/>
 </p>
 
 <h1 align="center">Caduceus</h1>
