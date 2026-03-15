@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/sombi/caduceus/master/src/renderer/assets/images/logo.png" alt="Caduceus" width="128" height="128"/>
+  <img src="https://raw.githubusercontent.com/lucasvidela94/caduceus/main/src/renderer/assets/images/logo.png" alt="Caduceus" width="128" height="128"/>
 </p>
 
 <h1 align="center">Caduceus</h1>
@@ -9,17 +9,17 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/sombi/caduceus/releases">
-    <img src="https://img.shields.io/github/v/release/sombi/caduceus?include_prereleases&label=version&color=blue" alt="Version"/>
+  <a href="https://github.com/lucasvidela94/caduceus/releases">
+    <img src="https://img.shields.io/github/v/release/lucasvidela94/caduceus?include_prereleases&label=version&color=blue" alt="Version"/>
   </a>
-  <a href="https://github.com/sombi/caduceus/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/sombi/caduceus?color=green" alt="License"/>
+  <a href="https://github.com/lucasvidela94/caduceus/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/lucasvidela94/caduceus?color=green" alt="License"/>
   </a>
-  <a href="https://github.com/sombi/caduceus/actions">
-    <img src="https://img.shields.io/github/actions/workflow/status/sombi/caduceus/test?label=tests" alt="Tests"/>
+  <a href="https://github.com/lucasvidela94/caduceus/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/lucasvidela94/caduceus/test?label=tests" alt="Tests"/>
   </a>
-  <a href="https://github.com/sombi/caduceus">
-    <img src="https://img.shields.io/github/stars/sombi/caduceus" alt="Stars"/>
+  <a href="https://github.com/lucasvidela94/caduceus">
+    <img src="https://img.shields.io/github/stars/lucasvidela94/caduceus" alt="Stars"/>
   </a>
 </p>
 
@@ -95,14 +95,8 @@ Caduceus is a **local-first**, privacy-focused desktop application for medical p
 
 ```bash
 # Clone the repository
-git clone https://github.com/sombi/caduceus.git
+git clone https://github.com/lucasvidela94/caduceus.git
 cd caduceus
-
-# Install dependencies
-pnpm install
-
-# Run in development mode
-pnpm dev
 ```
 
 ### Build for Production
