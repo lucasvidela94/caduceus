@@ -13,7 +13,8 @@ export const PatientRepository = {
         email: input.email || null,
         phone: input.phone || null,
         address: input.address || null,
-        notes: input.notes || null
+        notes: input.notes || null,
+        reminderPreference: input.reminderPreference || "email"
       })
       .returning()
       .get();
@@ -52,7 +53,8 @@ export const PatientRepository = {
         ...(input.email !== undefined && { email: input.email || null }),
         ...(input.phone !== undefined && { phone: input.phone || null }),
         ...(input.address !== undefined && { address: input.address || null }),
-        ...(input.notes !== undefined && { notes: input.notes || null })
+        ...(input.notes !== undefined && { notes: input.notes || null }),
+        ...(input.reminderPreference !== undefined && { reminderPreference: input.reminderPreference })
       })
       .where(eq(patients.id, id))
       .returning()
@@ -83,6 +85,7 @@ const mapToPatient = (row: typeof patients.$inferSelect): Patient => ({
   phone: row.phone,
   address: row.address,
   notes: row.notes,
+  reminderPreference: row.reminderPreference,
   created_at: row.createdAt?.toISOString() || new Date().toISOString(),
   updated_at: row.updatedAt?.toISOString() || new Date().toISOString()
 });

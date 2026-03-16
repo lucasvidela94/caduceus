@@ -40,6 +40,25 @@ export const PatientService = {
     if (!deleted) {
       throw new Error(`No se pudo eliminar el paciente con ID ${id}`);
     }
+  },
+
+  search: (query: string): Patient[] => {
+    if (!query || query.trim().length === 0) {
+      return PatientRepository.findAll();
+    }
+
+    const searchTerm = query.toLowerCase().trim();
+    const allPatients = PatientRepository.findAll();
+
+    return allPatients.filter(patient => {
+      const nameMatch = patient.name.toLowerCase().includes(searchTerm);
+      const emailMatch = patient.email?.toLowerCase().includes(searchTerm) ?? false;
+      const phoneMatch = patient.phone?.toLowerCase().includes(searchTerm) ?? false;
+      const addressMatch = patient.address?.toLowerCase().includes(searchTerm) ?? false;
+      const notesMatch = patient.notes?.toLowerCase().includes(searchTerm) ?? false;
+
+      return nameMatch || emailMatch || phoneMatch || addressMatch || notesMatch;
+    });
   }
 };
 

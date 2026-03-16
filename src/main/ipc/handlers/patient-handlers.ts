@@ -60,4 +60,14 @@ export const registerPatientHandlers = (): void => {
       return { success: true };
     }
   );
+
+  ipcMain.handle(
+    IPC_CHANNELS.SEARCH_PATIENTS,
+    async (event: IpcMainInvokeEvent, query: string) => {
+      if (!validateSender(event)) {
+        throw new Error("Invalid sender");
+      }
+      return PatientService.search(query);
+    }
+  );
 };

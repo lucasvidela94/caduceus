@@ -7,6 +7,7 @@ export const patients = sqliteTable("patients", {
   phone: text("phone"),
   address: text("address"),
   notes: text("notes"),
+  reminderPreference: text("reminder_preference").default("email"), // 'email', 'sms', 'both', 'none'
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdateFn(() => new Date())
 });

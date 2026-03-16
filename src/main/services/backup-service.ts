@@ -6,8 +6,7 @@ const BACKUP_RETENTION_DAYS = 30;
 const MAX_BACKUP_COUNT = 10;
 
 export const getBackupDirectory = (): string => {
-  const userData = app.getPath("userData");
-  return path.join(userData, "backups");
+  return path.join(app.getPath("userData"), "backups");
 };
 
 export const ensureBackupDirectory = (): void => {

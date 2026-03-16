@@ -4,6 +4,7 @@ export const IPC_CHANNELS = {
   GET_PATIENT: "get-patient",
   UPDATE_PATIENT: "update-patient",
   DELETE_PATIENT: "delete-patient",
+  SEARCH_PATIENTS: "search-patients",
   CREATE_BACKUP: "create-backup",
   LIST_BACKUPS: "list-backups",
   RESTORE_BACKUP: "restore-backup",

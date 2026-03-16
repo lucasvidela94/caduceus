@@ -2,10 +2,16 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
-  UserPlus,
+  Calendar,
+  Stethoscope,
+  Settings,
+  ChevronDown,
+  Plus,
+  List,
+  CalendarDays,
 } from "lucide-react";
 import logo from "@/assets/images/logo.png";
-import { ROUTES, ROUTE_LABELS } from "@/shared/lib/routes";
+import { ROUTES } from "@/shared/lib/routes";
 
 import {
   Sidebar,
@@ -17,26 +23,74 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarProvider,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
-interface NavItem {
-  path: string;
-  label: string;
-  icon: typeof LayoutDashboard;
+interface MenuSection {
+  title: string;
+  icon: React.ElementType;
+  path?: string;
+  items?: {
+    label: string;
+    path: string;
+    icon: React.ElementType;
+  }[];
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { path: ROUTES.HOME, label: ROUTE_LABELS[ROUTES.HOME], icon: LayoutDashboard },
-  { path: ROUTES.PATIENTS.LIST, label: ROUTE_LABELS[ROUTES.PATIENTS.LIST], icon: Users },
-  { path: ROUTES.PATIENTS.NEW, label: ROUTE_LABELS[ROUTES.PATIENTS.NEW], icon: UserPlus },
+const MENU_SECTIONS: MenuSection[] = [
+  {
+    title: "Dashboard",
+    icon: LayoutDashboard,
+    path: ROUTES.HOME,
+  },
+  {
+    title: "Pacientes",
+    icon: Users,
+    items: [
+      { label: "Ver Pacientes", path: ROUTES.PATIENTS.LIST, icon: List },
+      { label: "Nuevo Paciente", path: ROUTES.PATIENTS.NEW, icon: Plus },
+    ],
+  },
+  {
+    title: "Turnos",
+    icon: Calendar,
+    items: [
+      { label: "Ver Turnos", path: ROUTES.APPOINTMENTS.LIST, icon: List },
+      { label: "Nuevo Turno", path: ROUTES.APPOINTMENTS.NEW, icon: Plus },
+      { label: "Calendario", path: ROUTES.APPOINTMENTS.CALENDAR, icon: CalendarDays },
+    ],
+  },
+  {
+    title: "Consultas",
+    icon: Stethoscope,
+    items: [
+      { label: "Ver Consultas", path: ROUTES.CONSULTATIONS.LIST, icon: List },
+      { label: "Nueva Consulta", path: ROUTES.CONSULTATIONS.NEW, icon: Plus },
+    ],
+  },
+  {
+    title: "Configuración",
+    icon: Settings,
+    path: ROUTES.SETTINGS,
+  },
 ];
 
 export function AppSidebar(): React.ReactElement {
   const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
+  const isSectionActive = (section: MenuSection) => {
+    if (section.path) return isActive(section.path);
+    return section.items?.some((item) => isActive(item.path)) ?? false;
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -57,18 +111,59 @@ export function AppSidebar(): React.ReactElement {
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV_ITEMS.map((item) => {
-                const isActive = location.pathname === item.path;
+              {MENU_SECTIONS.map((section) => {
+                if (section.items) {
+                  // Sección con dropdown
+                  return (
+                    <Collapsible
+                      key={section.title}
+                      defaultOpen={isSectionActive(section)}
+                      className="group/collapsible"
+                    >
+                      <SidebarMenuItem>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            isActive={isSectionActive(section)}
+                            tooltip={section.title}
+                          >
+                            <section.icon className="h-4 w-4" />
+                            <span>{section.title}</span>
+                            <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {section.items.map((item) => (
+                              <SidebarMenuSubItem key={item.path}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={isActive(item.path)}
+                                >
+                                  <NavLink to={item.path}>
+                                    <item.icon className="h-4 w-4" />
+                                    <span>{item.label}</span>
+                                  </NavLink>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </SidebarMenuItem>
+                    </Collapsible>
+                  );
+                }
+
+                // Sección simple (sin dropdown)
                 return (
-                  <SidebarMenuItem key={item.path}>
+                  <SidebarMenuItem key={section.title}>
                     <SidebarMenuButton
                       asChild
-                      isActive={isActive}
-                      tooltip={item.label}
+                      isActive={isActive(section.path!)}
+                      tooltip={section.title}
                     >
-                      <NavLink to={item.path}>
-                        <item.icon />
-                        <span>{item.label}</span>
+                      <NavLink to={section.path!}>
+                        <section.icon className="h-4 w-4" />
+                        <span>{section.title}</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

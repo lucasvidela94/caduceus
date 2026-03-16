@@ -12,42 +12,34 @@ import { ROUTES, BREADCRUMB_MAP } from "@/shared/lib/routes";
 import { Mail, Phone, MapPin } from "lucide-react";
 
 export const PatientsList = (): ReactElement => {
-  const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    window.electronAPI
-      .getPatients()
-      .then((data: Patient[]) => {
-        setPatients(data);
+    const loadPatients = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        let data: Patient[];
+        if (searchQuery.trim()) {
+          data = await window.electronAPI.searchPatients(searchQuery);
+        } else {
+          data = await window.electronAPI.getPatients();
+        }
         setFilteredPatients(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al cargar pacientes");
+      } finally {
         setLoading(false);
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+      }
+    };
 
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredPatients(patients);
-      return;
-    }
-
-    const query = searchQuery.toLowerCase();
-    const filtered = patients.filter(
-      (p) =>
-        p.name.toLowerCase().includes(query) ||
-        p.email?.toLowerCase().includes(query) ||
-        p.phone?.toLowerCase().includes(query) ||
-        p.address?.toLowerCase().includes(query)
-    );
-    setFilteredPatients(filtered);
-  }, [searchQuery, patients]);
+    const timeoutId = setTimeout(loadPatients, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   return (
     <PageContainer>
@@ -102,7 +94,11 @@ export const PatientsList = (): ReactElement => {
       {!loading && error === null && filteredPatients.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredPatients.map((patient) => (
-            <Card key={patient.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={patient.id}
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => window.location.hash = `#${ROUTES.PATIENTS.DETAIL(patient.id)}`}
+            >
               <CardHeader>
                 <CardTitle className="text-base">{patient.name}</CardTitle>
               </CardHeader>

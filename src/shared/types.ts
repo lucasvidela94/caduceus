@@ -5,6 +5,7 @@ export interface Patient {
   phone: string | null;
   address: string | null;
   notes: string | null;
+  reminderPreference: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -15,6 +16,7 @@ export interface PatientInput {
   phone?: string;
   address?: string;
   notes?: string;
+  reminderPreference?: string;
 }
 
 export interface BackupInfo {

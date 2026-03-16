@@ -1,0 +1,41 @@
+appId: com.caduceus.app
+productName: Caduceus
+copyright: Copyright © 2024
+directories:
+  output: release
+  buildResources: build
+files:
+  - dist/**/*
+  - package.json
+extraResources:
+  - from: caduceus.db
+    to: caduceus.db
+    filter:
+      - "**/*"
+  - from: drizzle
+    to: drizzle
+    filter:
+      - "**/*"
+mac:
+  category: public.app-category.medical
+  target:
+    - dmg
+    - zip
+win:
+  target:
+    - nsis
+    - portable
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Office
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+publish:
+  provider: github
+  owner: lucasvidela94
+  repo: caduceus

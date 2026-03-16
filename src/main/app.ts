@@ -13,10 +13,10 @@ const PLATFORM = {
 const DB_PATH = path.join(process.cwd(), "caduceus.db");
 
 export const initializeApp = (): void => {
-  app.whenReady().then(() => {
+  app.whenReady().then(async () => {
     // Backup before running migrations
     try {
-      const backupPath = backupBeforeMigration();
+      const backupPath = await backupBeforeMigration();
       console.log("Database backup created:", backupPath);
     } catch (error) {
       console.error("Failed to create backup before migration:", error);
