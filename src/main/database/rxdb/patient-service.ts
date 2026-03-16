@@ -1,8 +1,18 @@
 import { getRxDatabase } from "./database";
 import { v4 as uuidv4 } from "uuid";
 
-function toPatientShape(doc: { id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; reminderPreference: string; createdAt: number; updatedAt: number }) {
-  return { id: doc.id, name: doc.name, email: doc.email, phone: doc.phone, address: doc.address, notes: doc.notes, reminderPreference: doc.reminderPreference, created_at: doc.createdAt, updated_at: doc.updatedAt };
+function toPatientShape(doc: any) {
+  return {
+    id: doc.id,
+    name: doc.name,
+    email: doc.email,
+    phone: doc.phone,
+    address: doc.address,
+    notes: doc.notes,
+    reminderPreference: doc.reminderPreference,
+    created_at: doc.created_at,
+    updated_at: doc.updated_at
+  };
 }
 
 export const patientService = {
@@ -36,9 +46,9 @@ export const patientService = {
       phone: data.phone || null,
       address: data.address || null,
       notes: data.notes || null,
-      reminderPreference: data.reminderPreference || "email",
-      createdAt: now,
-      updatedAt: now,
+      reminderPreference: data.reminderPreference || null,
+      created_at: now,
+      updated_at: now,
     });
     return toPatientShape(created as any);
   },
@@ -58,7 +68,7 @@ export const patientService = {
     await patient.update({
       $set: {
         ...data,
-        updatedAt: Date.now(),
+        updated_at: Date.now(),
       },
     });
     const updated = await db.patients.findOne(id).exec();

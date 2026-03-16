@@ -77,8 +77,8 @@ export const consultationService = {
       otherStudies: data.otherStudies || null,
       nextAppointment: data.nextAppointment || null,
       notes: data.notes || null,
-      createdAt: now,
-      updatedAt: now,
+      created_at: now,
+      updated_at: now,
     });
   },
 
@@ -110,7 +110,7 @@ export const consultationService = {
     await consultation.update({
       $set: {
         ...data,
-        updatedAt: Date.now(),
+        updated_at: Date.now(),
       },
     });
     return consultation;

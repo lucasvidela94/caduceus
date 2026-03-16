@@ -2,10 +2,16 @@ import { createRxDatabase, addRxPlugin, RxDatabase } from "rxdb";
 import { getRxStorageDexie } from "rxdb/plugins/storage-dexie";
 import { RxDBQueryBuilderPlugin } from "rxdb/plugins/query-builder";
 import { RxDBUpdatePlugin } from "rxdb/plugins/update";
+import { RxDBDevModePlugin } from "rxdb/plugins/dev-mode";
 
 // Add plugins
 addRxPlugin(RxDBQueryBuilderPlugin);
 addRxPlugin(RxDBUpdatePlugin);
+
+// Enable dev mode in development
+if (process.env.NODE_ENV === "development") {
+  addRxPlugin(RxDBDevModePlugin);
+}
 
 // Database instance
 let db: RxDatabase | null = null;
@@ -36,17 +42,16 @@ const patientSchema = {
       type: ["string", "null"],
     },
     reminderPreference: {
-      type: "string",
-      default: "email",
+      type: ["string", "null"],
     },
-    createdAt: {
+    created_at: {
       type: "number",
     },
-    updatedAt: {
+    updated_at: {
       type: "number",
     },
   },
-  required: ["id", "name", "createdAt", "updatedAt"],
+  required: ["id", "name", "created_at", "updated_at"],
 };
 
 // Appointment schema
@@ -84,14 +89,14 @@ const appointmentSchema = {
     notes: {
       type: ["string", "null"],
     },
-    createdAt: {
+    created_at: {
       type: "number",
     },
-    updatedAt: {
+    updated_at: {
       type: "number",
     },
   },
-  required: ["id", "patientId", "date", "time", "reason", "createdAt", "updatedAt"],
+  required: ["id", "patientId", "date", "time", "reason", "created_at", "updated_at"],
 };
 
 // Consultation schema
@@ -169,14 +174,14 @@ const consultationSchema = {
     notes: {
       type: ["string", "null"],
     },
-    createdAt: {
+    created_at: {
       type: "number",
     },
-    updatedAt: {
+    updated_at: {
       type: "number",
     },
   },
-  required: ["id", "patientId", "date", "reason", "diagnosis", "createdAt", "updatedAt"],
+  required: ["id", "patientId", "date", "reason", "diagnosis", "created_at", "updated_at"],
 };
 
 // Settings schema

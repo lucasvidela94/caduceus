@@ -57,8 +57,8 @@ export const appointmentService = {
       reason: data.reason,
       status: "pending",
       notes: data.notes || null,
-      createdAt: now,
-      updatedAt: now,
+      created_at: now,
+      updated_at: now,
     });
   },
 
@@ -77,7 +77,7 @@ export const appointmentService = {
     await appointment.update({
       $set: {
         ...data,
-        updatedAt: Date.now(),
+        updated_at: Date.now(),
       },
     });
     return appointment;
