@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
 import { app } from "electron";
-import { patientService, appointmentService, consultationService, settingsService } from "../database/rxdb";
 
 const BACKUP_RETENTION_DAYS = 30;
 const MAX_BACKUP_COUNT = 10;
@@ -26,33 +25,21 @@ export interface BackupData {
   settings: Record<string, string>;
 }
 
-export const createBackup = async (_dbPath: string): Promise<string> => {
+export const createBackupFromData = async (data: BackupData): Promise<string> => {
   ensureBackupDirectory();
-  
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const backupFileName = `caduceus-backup-${timestamp}.json`;
   const backupPath = path.join(getBackupDirectory(), backupFileName);
-  
-  // Export all data from RxDB
-  const [patients, appointments, consultations, settings] = await Promise.all([
-    patientService.getAll(),
-    appointmentService.getAll(),
-    consultationService.getAll(),
-    settingsService.getAll()
-  ]);
-  
-  const backupData: BackupData = {
-    version: "0.3.0",
-    exportedAt: new Date().toISOString(),
-    patients,
-    appointments,
-    consultations,
-    settings
-  };
-  
-  fs.writeFileSync(backupPath, JSON.stringify(backupData, null, 2), "utf8");
-  
+  fs.writeFileSync(backupPath, JSON.stringify(data, null, 2), "utf8");
   return backupPath;
+};
+
+export const readBackupData = async (backupPath: string): Promise<BackupData> => {
+  if (!fs.existsSync(backupPath)) {
+    throw new Error(`Backup file not found: ${backupPath}`);
+  }
+  const content = fs.readFileSync(backupPath, "utf8");
+  return JSON.parse(content) as BackupData;
 };
 
 export const listBackups = (): Array<{ name: string; path: string; size: number; created: Date }> => {
@@ -105,59 +92,6 @@ export const cleanupOldBackups = (): void => {
         fs.unlinkSync(backup.path);
       } catch (error) {
         console.error(`Failed to delete excess backup: ${backup.path}`, error);
-      }
-    }
-  }
-};
-
-export const restoreBackup = async (backupPath: string): Promise<void> => {
-  if (!fs.existsSync(backupPath)) {
-    throw new Error(`Backup file not found: ${backupPath}`);
-  }
-  
-  const content = fs.readFileSync(backupPath, "utf8");
-  const data: BackupData = JSON.parse(content);
-  
-  // Restore patients
-  if (data.patients) {
-    for (const patient of data.patients) {
-      try {
-        await patientService.create(patient);
-      } catch (error) {
-        console.error(`Failed to restore patient: ${patient.name}`, error);
-      }
-    }
-  }
-  
-  // Restore appointments
-  if (data.appointments) {
-    for (const appointment of data.appointments) {
-      try {
-        await appointmentService.create(appointment);
-      } catch (error) {
-        console.error(`Failed to restore appointment: ${appointment.id}`, error);
-      }
-    }
-  }
-  
-  // Restore consultations
-  if (data.consultations) {
-    for (const consultation of data.consultations) {
-      try {
-        await consultationService.create(consultation);
-      } catch (error) {
-        console.error(`Failed to restore consultation: ${consultation.id}`, error);
-      }
-    }
-  }
-  
-  // Restore settings
-  if (data.settings) {
-    for (const [key, value] of Object.entries(data.settings)) {
-      try {
-        await settingsService.setValue(key, value);
-      } catch (error) {
-        console.error(`Failed to restore setting: ${key}`, error);
       }
     }
   }

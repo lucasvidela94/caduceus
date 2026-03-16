@@ -10,6 +10,7 @@ import { PageHeader } from "@/shared/components/page-header";
 import { PageContainer } from "@/shared/components/page-container";
 import { ROUTES, BREADCRUMB_MAP } from "@/shared/lib/routes";
 import { Building2, User, Clock, Save } from "lucide-react";
+import { settingsService } from "@/services";
 
 interface SettingsData {
   clinic_name: string;
@@ -50,7 +51,7 @@ export const SettingsPage = (): ReactElement => {
 
   const loadSettings = async () => {
     try {
-      const data = await window.electronAPI.getSettings();
+      const data = await settingsService.getAll();
       setSettings({ ...defaultSettings, ...data });
     } catch (err) {
       setError("Error al cargar configuración");
@@ -65,7 +66,7 @@ export const SettingsPage = (): ReactElement => {
     setSuccess(false);
 
     try {
-      await window.electronAPI.updateMultipleSettings(settings as unknown as Record<string, string>);
+      await settingsService.updateMultiple(settings as unknown as Record<string, string>);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {

@@ -8,6 +8,7 @@ import { EmptyState } from "@/shared/components/empty-state";
 import { CardSkeleton } from "@/shared/components/loading-state";
 import { ROUTES, BREADCRUMB_MAP } from "@/shared/lib/routes";
 import { Calendar, Stethoscope, User, FileText } from "lucide-react";
+import { consultationService } from "@/services";
 
 interface ConsultationWithPatient {
   consultation: {
@@ -36,7 +37,7 @@ export const ConsultationsList = (): ReactElement => {
   const loadConsultations = async () => {
     setLoading(true);
     try {
-      const data = await window.electronAPI.getConsultations();
+      const data = await consultationService.getAllWithPatients();
       setConsultations(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cargar consultas");

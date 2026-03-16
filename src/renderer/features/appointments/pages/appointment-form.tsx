@@ -17,6 +17,7 @@ import { PageHeader } from "@/shared/components/page-header";
 import { PageContainer } from "@/shared/components/page-container";
 import { ROUTES, BREADCRUMB_MAP } from "@/shared/lib/routes";
 import { Calendar, Clock, User, Stethoscope, Bell } from "lucide-react";
+import { patientService, appointmentService } from "@/services";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface Patient {
@@ -70,7 +71,7 @@ export const AppointmentForm = (): ReactElement => {
 
   const loadPatients = async () => {
     try {
-      const data = await window.electronAPI.getPatients();
+      const data = await patientService.getAll();
       setPatients(data);
     } catch (err) {
       setError("Error al cargar pacientes");
@@ -81,7 +82,7 @@ export const AppointmentForm = (): ReactElement => {
 
   const loadAvailableSlots = async () => {
     try {
-      const slots = await window.electronAPI.getAvailableSlots(formData.date, formData.duration);
+      const slots = await appointmentService.getAvailableSlots(formData.date, formData.duration);
       setAvailableSlots(slots);
       if (slots.length > 0 && !formData.time) {
         setFormData(prev => ({ ...prev, time: slots[0] }));
@@ -97,7 +98,7 @@ export const AppointmentForm = (): ReactElement => {
     setError(null);
 
     try {
-      const appointment = await window.electronAPI.createAppointment({
+      await appointmentService.create({
         patientId: formData.patientId,
         date: formData.date,
         time: formData.time,
@@ -105,17 +106,6 @@ export const AppointmentForm = (): ReactElement => {
         reason: formData.reason,
         notes: formData.notes || undefined
       });
-      
-      // Crear recordatorio si está habilitado
-      if (formData.sendReminder) {
-        try {
-          await window.electronAPI.createRemindersForAppointment(appointment.id);
-        } catch (reminderErr) {
-          console.error("Error al crear recordatorio:", reminderErr);
-          // No fallamos el turno si el recordatorio falla
-        }
-      }
-      
       window.location.hash = `#${ROUTES.APPOINTMENTS.LIST}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al crear turno");

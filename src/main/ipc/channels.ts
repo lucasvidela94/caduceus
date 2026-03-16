@@ -8,6 +8,7 @@ export const IPC_CHANNELS = {
   CREATE_BACKUP: "create-backup",
   LIST_BACKUPS: "list-backups",
   RESTORE_BACKUP: "restore-backup",
+  GET_BACKUP_DATA: "get-backup-data",
   EXPORT_JSON: "export-json",
   IMPORT_JSON: "import-json",
   EXPORT_CSV: "export-csv",

@@ -18,6 +18,7 @@ import { PageHeader } from "@/shared/components/page-header";
 import { PageContainer } from "@/shared/components/page-container";
 import { ROUTES, BREADCRUMB_MAP } from "@/shared/lib/routes";
 import { Calendar, Stethoscope, User, Activity, FileText, FlaskConical } from "lucide-react";
+import { patientService, consultationService } from "@/services";
 
 interface Patient {
   id: string;
@@ -82,7 +83,7 @@ export const ConsultationForm = (): ReactElement => {
 
   const loadPatients = async () => {
     try {
-      const data = await window.electronAPI.getPatients();
+      const data = await patientService.getAll();
       setPatients(data);
     } catch (err) {
       setError("Error al cargar pacientes");
@@ -97,7 +98,7 @@ export const ConsultationForm = (): ReactElement => {
     setError(null);
 
     try {
-      await window.electronAPI.createConsultation({
+      await consultationService.create({
         patientId: formData.patientId,
         date: formData.date,
         reason: formData.reason,

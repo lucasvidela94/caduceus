@@ -10,6 +10,7 @@ import { EmptyState } from "@/shared/components/empty-state";
 import { CardSkeleton } from "@/shared/components/loading-state";
 import { ROUTES, BREADCRUMB_MAP } from "@/shared/lib/routes";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { patientService } from "@/services";
 
 export const PatientsList = (): ReactElement => {
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
@@ -25,9 +26,9 @@ export const PatientsList = (): ReactElement => {
       try {
         let data: Patient[];
         if (searchQuery.trim()) {
-          data = await window.electronAPI.searchPatients(searchQuery);
+          data = await patientService.search(searchQuery);
         } else {
-          data = await window.electronAPI.getPatients();
+          data = await patientService.getAll();
         }
         setFilteredPatients(data);
       } catch (err) {

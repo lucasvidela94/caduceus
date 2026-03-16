@@ -26,6 +26,15 @@ export interface BackupInfo {
   created: Date;
 }
 
+export interface BackupData {
+  version: string;
+  exportedAt: string;
+  patients: unknown[];
+  appointments: unknown[];
+  consultations: unknown[];
+  settings: Record<string, string>;
+}
+
 export interface Appointment {
   id: string;
   patientId: string;
@@ -107,9 +116,9 @@ export interface ElectronAPI {
   updatePatient: (id: string, input: Partial<PatientInput>) => Promise<Patient>;
   deletePatient: (id: string) => Promise<{ success: boolean }>;
   searchPatients: (query: string) => Promise<Patient[]>;
-  createBackup: () => Promise<{ success: boolean; path: string }>;
+  createBackup: (data: BackupData) => Promise<{ success: boolean; path: string }>;
   listBackups: () => Promise<BackupInfo[]>;
-  restoreBackup: (backupPath: string) => Promise<{ success: boolean }>;
+  getBackupData: (backupPath: string) => Promise<BackupData>;
   exportJSON: () => Promise<{ success: boolean; canceled?: boolean; path?: string }>;
   importJSON: () => Promise<{ success: boolean; canceled?: boolean; imported: number; errors: string[] }>;
   exportCSV: () => Promise<{ success: boolean; canceled?: boolean; path?: string }>;
@@ -150,6 +159,11 @@ export interface ElectronAPI {
   cancelReminders: (appointmentId: string) => Promise<void>;
   getReminderStats: () => Promise<{ total: number; pending: number; sent: number; failed: number }>;
   processPendingReminders: () => Promise<unknown[]>;
+  ipcRenderer: {
+    on: (channel: string, listener: (event: unknown, ...args: unknown[]) => void) => void;
+    postMessage: (channel: string, message: unknown) => void;
+    removeListener: (channel: string, listener: (event: unknown, ...args: unknown[]) => void) => void;
+  };
 }
 
 declare global {

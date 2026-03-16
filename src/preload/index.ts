@@ -10,6 +10,7 @@ const IPC_CHANNELS = {
   CREATE_BACKUP: "create-backup",
   LIST_BACKUPS: "list-backups",
   RESTORE_BACKUP: "restore-backup",
+  GET_BACKUP_DATA: "get-backup-data",
   EXPORT_JSON: "export-json",
   IMPORT_JSON: "import-json",
   EXPORT_CSV: "export-csv",
@@ -68,6 +69,15 @@ export interface BackupInfo {
   path: string;
   size: number;
   created: Date;
+}
+
+export interface BackupData {
+  version: string;
+  exportedAt: string;
+  patients: unknown[];
+  appointments: unknown[];
+  consultations: unknown[];
+  settings: Record<string, string>;
 }
 
 export interface Appointment {
@@ -150,12 +160,12 @@ export interface ElectronAPI {
   updatePatient: (id: string, input: Partial<PatientInput>) => Promise<Patient>;
   deletePatient: (id: string) => Promise<{ success: boolean }>;
   searchPatients: (query: string) => Promise<Patient[]>;
-  createBackup: () => Promise<{ success: boolean; path: string }>;
+  createBackup: (data: BackupData) => Promise<{ success: boolean; path: string }>;
   listBackups: () => Promise<BackupInfo[]>;
-  restoreBackup: (backupPath: string) => Promise<{ success: boolean }>;
-  exportJSON: () => Promise<{ success: boolean; canceled?: boolean; path?: string }>;
-  importJSON: () => Promise<{ success: boolean; canceled?: boolean; imported: number; errors: string[] }>;
-  exportCSV: () => Promise<{ success: boolean; canceled?: boolean; path?: string }>;
+  getBackupData: (backupPath: string) => Promise<BackupData>;
+  exportJSON: (data: { version: string; exportedAt: string; patients: unknown[] }) => Promise<{ success: boolean; canceled?: boolean; path?: string }>;
+  importJSON: () => Promise<{ success: boolean; canceled?: boolean; content?: string }>;
+  exportCSV: (csvContent: string) => Promise<{ success: boolean; canceled?: boolean; path?: string }>;
   checkIntegrity: () => Promise<{ ok: boolean; errors: string[] }>;
   getAppointments: () => Promise<Array<{ appointment: Appointment; patient: { id: string; name: string } | null }>>;
   getAppointmentById: (id: string) => Promise<{ appointment: Appointment; patient: { id: string; name: string; email: string | null; phone: string | null } | null } | null>;
@@ -202,9 +212,19 @@ export interface ElectronAPI {
     failed: number;
   }>;
   processPendingReminders: () => Promise<unknown[]>;
+  ipcRenderer: {
+    on: (channel: string, listener: (...args: unknown[]) => void) => void;
+    postMessage: (channel: string, message: unknown) => void;
+    removeListener: (channel: string, listener: (...args: unknown[]) => void) => void;
+  };
 }
 
 const api: ElectronAPI = {
+  ipcRenderer: {
+    on: (channel, listener) => { ipcRenderer.on(channel, listener as any); },
+    postMessage: (channel, message) => { ipcRenderer.send(channel, message); },
+    removeListener: (channel, listener) => { ipcRenderer.removeListener(channel, listener as any); },
+  },
   getPatients: (): Promise<Patient[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_PATIENTS),
   addPatient: (input: PatientInput): Promise<Patient> =>
@@ -217,18 +237,18 @@ const api: ElectronAPI = {
     ipcRenderer.invoke(IPC_CHANNELS.DELETE_PATIENT, id),
   searchPatients: (query: string): Promise<Patient[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.SEARCH_PATIENTS, query),
-  createBackup: (): Promise<{ success: boolean; path: string }> =>
-    ipcRenderer.invoke(IPC_CHANNELS.CREATE_BACKUP),
+  createBackup: (data: BackupData): Promise<{ success: boolean; path: string }> =>
+    ipcRenderer.invoke(IPC_CHANNELS.CREATE_BACKUP, data),
   listBackups: (): Promise<BackupInfo[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.LIST_BACKUPS),
-  restoreBackup: (backupPath: string): Promise<{ success: boolean }> =>
-    ipcRenderer.invoke(IPC_CHANNELS.RESTORE_BACKUP, backupPath),
-  exportJSON: (): Promise<{ success: boolean; canceled?: boolean; path?: string }> =>
-    ipcRenderer.invoke(IPC_CHANNELS.EXPORT_JSON),
-  importJSON: (): Promise<{ success: boolean; canceled?: boolean; imported: number; errors: string[] }> =>
+  getBackupData: (backupPath: string): Promise<BackupData> =>
+    ipcRenderer.invoke(IPC_CHANNELS.GET_BACKUP_DATA, backupPath),
+  exportJSON: (data: { version: string; exportedAt: string; patients: unknown[] }): Promise<{ success: boolean; canceled?: boolean; path?: string }> =>
+    ipcRenderer.invoke(IPC_CHANNELS.EXPORT_JSON, data),
+  importJSON: (): Promise<{ success: boolean; canceled?: boolean; content?: string }> =>
     ipcRenderer.invoke(IPC_CHANNELS.IMPORT_JSON),
-  exportCSV: (): Promise<{ success: boolean; canceled?: boolean; path?: string }> =>
-    ipcRenderer.invoke(IPC_CHANNELS.EXPORT_CSV),
+  exportCSV: (csvContent: string): Promise<{ success: boolean; canceled?: boolean; path?: string }> =>
+    ipcRenderer.invoke(IPC_CHANNELS.EXPORT_CSV, csvContent),
   checkIntegrity: (): Promise<{ ok: boolean; errors: string[] }> =>
     ipcRenderer.invoke(IPC_CHANNELS.CHECK_INTEGRITY),
   getAppointments: (): Promise<Array<{ appointment: Appointment; patient: { id: string; name: string } | null }>> =>
@@ -302,7 +322,7 @@ const api: ElectronAPI = {
   }> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_REMINDER_STATS),
   processPendingReminders: (): Promise<unknown[]> =>
-    ipcRenderer.invoke(IPC_CHANNELS.PROCESS_PENDING_REMINDERS)
+    ipcRenderer.invoke(IPC_CHANNELS.PROCESS_PENDING_REMINDERS),
 };
 
 contextBridge.exposeInMainWorld("electronAPI", api);

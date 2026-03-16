@@ -10,6 +10,7 @@ import { PageHeader } from "@/shared/components/page-header";
 import { PageContainer } from "@/shared/components/page-container";
 import { ROUTES, BREADCRUMB_MAP } from "@/shared/lib/routes";
 import { validatePatient } from "@/shared/lib/validation";
+import { patientService } from "@/services";
 
 interface FormData {
   name: string;
@@ -54,7 +55,7 @@ export const PatientForm = (): ReactElement => {
     setLoading(true);
 
     try {
-      const patient = await window.electronAPI.addPatient({
+      const patient = await patientService.create({
         name: validation.data.name,
         email: validation.data.email || undefined,
         phone: validation.data.phone || undefined,

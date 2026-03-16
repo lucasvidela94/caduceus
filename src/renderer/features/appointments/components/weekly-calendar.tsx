@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Calendar, Clock, User } from "lucide-react";
 import { format, addDays, startOfWeek, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { ROUTES } from "@/shared/lib/routes";
+import { appointmentService } from "@/services";
 
 interface Appointment {
   id: string;
@@ -53,7 +54,7 @@ export function WeeklyCalendar() {
     try {
       const startDate = weekStart.toISOString().split("T")[0];
       const endDate = addDays(weekStart, 6).toISOString().split("T")[0];
-      const data = await window.electronAPI.getAppointmentsByDateRange(startDate, endDate);
+      const data = await appointmentService.getByDateRangeWithPatients(startDate, endDate);
       setAppointments(data.map(item => ({
         ...item.appointment,
         patient: item.patient

@@ -2,6 +2,9 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./app";
 import "./styles/global.css";
+import { getRxDatabase } from "@/database/database";
+
+getRxDatabase().catch((err) => console.error("RxDB init failed:", err));
 
 const container = document.getElementById("root");
 

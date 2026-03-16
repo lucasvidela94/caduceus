@@ -16,6 +16,7 @@ import { PageContainer } from "@/shared/components/page-container";
 import { CardSkeleton } from "@/shared/components/loading-state";
 import { ROUTES } from "@/shared/lib/routes";
 import { Calendar, User, Stethoscope, FileText, ArrowLeft, Trash2 } from "lucide-react";
+import { appointmentService } from "@/services";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -77,9 +78,17 @@ export const AppointmentDetail = (): ReactElement => {
 
   const loadAppointment = async () => {
     try {
-      const data = await window.electronAPI.getAppointmentById(id ?? "");
+      const data = await appointmentService.getByIdWithPatient(id ?? "");
       if (data) {
-        setAppointment(data);
+        setAppointment({
+          appointment: data.appointment,
+          patient: data.patient ? {
+            id: data.patient.id,
+            name: data.patient.name,
+            email: data.patient.email ?? null,
+            phone: data.patient.phone ?? null,
+          } : null,
+        });
       } else {
         setError("Turno no encontrado");
       }
@@ -92,7 +101,7 @@ export const AppointmentDetail = (): ReactElement => {
 
   const handleDelete = async () => {
     try {
-      await window.electronAPI.deleteAppointment(id ?? "");
+      await appointmentService.delete(id ?? "");
       window.location.hash = `#${ROUTES.APPOINTMENTS.LIST}`;
     } catch (err) {
       setError("Error al eliminar el turno");
@@ -101,7 +110,7 @@ export const AppointmentDetail = (): ReactElement => {
 
   const handleStatusChange = async (status: string) => {
     try {
-      await window.electronAPI.updateAppointment(id ?? "", { status: status as "pending" | "completed" | "cancelled" | "no-show" });
+      await appointmentService.update(id ?? "", { status: status as "pending" | "completed" | "cancelled" | "no-show" });
       loadAppointment();
     } catch (err) {
       setError("Error al actualizar el estado");

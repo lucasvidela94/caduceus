@@ -13,6 +13,7 @@ import { LoadingState } from "@/shared/components/loading-state";
 import { ROUTES } from "@/shared/lib/routes";
 import { validatePatient } from "@/shared/lib/validation";
 import { Mail, Phone, MapPin, Calendar, ArrowLeft, Edit2, Save, X } from "lucide-react";
+import { patientService } from "@/services";
 
 export const PatientDetail = (): ReactElement => {
   const { id } = useParams<{ id: string }>();
@@ -28,8 +29,8 @@ export const PatientDetail = (): ReactElement => {
   useEffect(() => {
     if (!id) return;
 
-    window.electronAPI
-      .getPatient(id ?? "")
+    patientService
+      .getById(id ?? "")
       .then((data) => {
         setPatient(data);
         setFormData(data);
@@ -64,7 +65,7 @@ export const PatientDetail = (): ReactElement => {
 
     setSaving(true);
     try {
-      const updated = await window.electronAPI.updatePatient(id ?? "", {
+      const updated = await patientService.update(id ?? "", {
         name: validation.data.name,
         email: validation.data.email,
         phone: validation.data.phone,

@@ -13,6 +13,7 @@ import {
   Clock,
   ArrowRight
 } from "lucide-react";
+import { patientService, consultationService, appointmentService } from "@/services";
 
 interface DashboardStats {
   totalPatients: number;
@@ -49,9 +50,9 @@ export const Dashboard = (): ReactElement => {
       setLoading(true);
       
       const [patients, consultations, appointments] = await Promise.all([
-        window.electronAPI.getPatients(),
-        window.electronAPI.getConsultations(),
-        window.electronAPI.getAppointments()
+        patientService.getAll(),
+        consultationService.getAllWithPatients(),
+        appointmentService.getAllWithPatients()
       ]);
 
       const now = new Date();

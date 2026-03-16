@@ -9,6 +9,7 @@ import { EmptyState } from "@/shared/components/empty-state";
 import { CardSkeleton } from "@/shared/components/loading-state";
 import { ROUTES, BREADCRUMB_MAP } from "@/shared/lib/routes";
 import { Calendar, Clock, User, CalendarDays } from "lucide-react";
+import { appointmentService } from "@/services";
 
 interface Appointment {
   appointment: {
@@ -55,7 +56,7 @@ export const AppointmentsList = (): ReactElement => {
   const loadAppointments = async () => {
     try {
       setIsLoading(true);
-      const data = await window.electronAPI.getAppointmentsByDate(selectedDate);
+      const data = await appointmentService.getByDateWithPatients(selectedDate);
       setAppointments(data);
     } catch (error) {
       console.error("Error loading appointments:", error);
