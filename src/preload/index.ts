@@ -157,17 +157,17 @@ export interface ElectronAPI {
   importJSON: () => Promise<{ success: boolean; canceled?: boolean; imported: number; errors: string[] }>;
   exportCSV: () => Promise<{ success: boolean; canceled?: boolean; path?: string }>;
   checkIntegrity: () => Promise<{ ok: boolean; errors: string[] }>;
-  getAppointments: () => Promise<Appointment[]>;
-  getAppointmentById: (id: string) => Promise<Appointment | null>;
+  getAppointments: () => Promise<Array<{ appointment: Appointment; patient: { id: string; name: string } | null }>>;
+  getAppointmentById: (id: string) => Promise<{ appointment: Appointment; patient: { id: string; name: string; email: string | null; phone: string | null } | null } | null>;
   getAppointmentsByPatient: (patientId: string) => Promise<Appointment[]>;
-  getAppointmentsByDate: (date: string) => Promise<Appointment[]>;
-  getAppointmentsByDateRange: (startDate: string, endDate: string) => Promise<Appointment[]>;
+  getAppointmentsByDate: (date: string) => Promise<Array<{ appointment: Appointment; patient: { id: string; name: string } | null }>>;
+  getAppointmentsByDateRange: (startDate: string, endDate: string) => Promise<Array<{ appointment: Appointment; patient: { id: string; name: string } | null }>>;
   createAppointment: (input: AppointmentInput) => Promise<Appointment>;
   updateAppointment: (id: string, input: Partial<AppointmentInput>) => Promise<Appointment>;
   deleteAppointment: (id: string) => Promise<void>;
   getAvailableSlots: (date: string, duration?: number) => Promise<string[]>;
-  getConsultations: () => Promise<Consultation[]>;
-  getConsultationById: (id: string) => Promise<Consultation | null>;
+  getConsultations: () => Promise<Array<{ consultation: Consultation; patient: { id: string; name: string } | null }>>;
+  getConsultationById: (id: string) => Promise<{ consultation: Consultation; patient: { id: string; name: string } | null } | null>;
   getConsultationsByPatient: (patientId: string) => Promise<Consultation[]>;
   getConsultationsByDateRange: (startDate: string, endDate: string) => Promise<Consultation[]>;
   createConsultation: (input: ConsultationInput) => Promise<Consultation>;
@@ -231,15 +231,15 @@ const api: ElectronAPI = {
     ipcRenderer.invoke(IPC_CHANNELS.EXPORT_CSV),
   checkIntegrity: (): Promise<{ ok: boolean; errors: string[] }> =>
     ipcRenderer.invoke(IPC_CHANNELS.CHECK_INTEGRITY),
-  getAppointments: (): Promise<Appointment[]> =>
+  getAppointments: (): Promise<Array<{ appointment: Appointment; patient: { id: string; name: string } | null }>> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_APPOINTMENTS),
-  getAppointmentById: (id: string): Promise<Appointment | null> =>
+  getAppointmentById: (id: string): Promise<{ appointment: Appointment; patient: { id: string; name: string; email: string | null; phone: string | null } | null } | null> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_APPOINTMENT_BY_ID, id),
   getAppointmentsByPatient: (patientId: string): Promise<Appointment[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_APPOINTMENTS_BY_PATIENT, patientId),
-  getAppointmentsByDate: (date: string): Promise<Appointment[]> =>
+  getAppointmentsByDate: (date: string): Promise<Array<{ appointment: Appointment; patient: { id: string; name: string } | null }>> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_APPOINTMENTS_BY_DATE, date),
-  getAppointmentsByDateRange: (startDate: string, endDate: string): Promise<Appointment[]> =>
+  getAppointmentsByDateRange: (startDate: string, endDate: string): Promise<Array<{ appointment: Appointment; patient: { id: string; name: string } | null }>> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_APPOINTMENTS_BY_DATE_RANGE, startDate, endDate),
   createAppointment: (input: AppointmentInput): Promise<Appointment> =>
     ipcRenderer.invoke(IPC_CHANNELS.CREATE_APPOINTMENT, input),
@@ -249,9 +249,9 @@ const api: ElectronAPI = {
     ipcRenderer.invoke(IPC_CHANNELS.DELETE_APPOINTMENT, id),
   getAvailableSlots: (date: string, duration?: number): Promise<string[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_AVAILABLE_SLOTS, date, duration),
-  getConsultations: (): Promise<Consultation[]> =>
+  getConsultations: (): Promise<Array<{ consultation: Consultation; patient: { id: string; name: string } | null }>> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_CONSULTATIONS),
-  getConsultationById: (id: string): Promise<Consultation | null> =>
+  getConsultationById: (id: string): Promise<{ consultation: Consultation; patient: { id: string; name: string } | null } | null> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_CONSULTATION_BY_ID, id),
   getConsultationsByPatient: (patientId: string): Promise<Consultation[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_CONSULTATIONS_BY_PATIENT, patientId),

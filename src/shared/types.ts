@@ -124,7 +124,7 @@ export interface ElectronAPI {
   deleteAppointment: (id: string) => Promise<void>;
   getAvailableSlots: (date: string, duration?: number) => Promise<string[]>;
   getConsultations: () => Promise<Array<{ consultation: Consultation; patient: { id: string; name: string } | null }>>;
-  getConsultationById: (id: string) => Promise<Consultation | null>;
+  getConsultationById: (id: string) => Promise<{ consultation: Consultation; patient: { id: string; name: string } | null } | null>;
   getConsultationsByPatient: (patientId: string) => Promise<Consultation[]>;
   getConsultationsByDateRange: (startDate: string, endDate: string) => Promise<Consultation[]>;
   createConsultation: (input: ConsultationInput) => Promise<Consultation>;
