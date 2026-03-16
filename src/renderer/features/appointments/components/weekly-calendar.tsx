@@ -5,10 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Calendar, Clock, User } from "lucide-react";
 import { format, addDays, startOfWeek, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
+import { ROUTES } from "@/shared/lib/routes";
 
 interface Appointment {
-  id: number;
-  patientId: number;
+  id: string;
+  patientId: string;
   date: string;
   time: string;
   duration: number;
@@ -16,9 +17,9 @@ interface Appointment {
   status: "pending" | "completed" | "cancelled" | "no-show";
   notes: string | null;
   patient?: {
-    id: number;
+    id: string;
     name: string;
-  };
+  } | null;
 }
 
 const STATUS_COLORS = {

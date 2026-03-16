@@ -29,7 +29,7 @@ export const PatientDetail = (): ReactElement => {
     if (!id) return;
 
     window.electronAPI
-      .getPatient(parseInt(id, 10))
+      .getPatient(id ?? "")
       .then((data) => {
         setPatient(data);
         setFormData(data);
@@ -64,7 +64,7 @@ export const PatientDetail = (): ReactElement => {
 
     setSaving(true);
     try {
-      const updated = await window.electronAPI.updatePatient(parseInt(id, 10), {
+      const updated = await window.electronAPI.updatePatient(id ?? "", {
         name: validation.data.name,
         email: validation.data.email,
         phone: validation.data.phone,

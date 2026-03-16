@@ -3,21 +3,21 @@ export const ROUTES = {
   PATIENTS: {
     LIST: "/patients",
     NEW: "/patients/new",
-    DETAIL: (id: number) => `/patients/${id}`,
-    EDIT: (id: number) => `/patients/${id}/edit`
+    DETAIL: (id: string) => `/patients/${id}`,
+    EDIT: (id: string) => `/patients/${id}/edit`
   },
   APPOINTMENTS: {
     LIST: "/appointments",
     NEW: "/appointments/new",
-    DETAIL: (id: number) => `/appointments/${id}`,
-    EDIT: (id: number) => `/appointments/${id}/edit`,
+    DETAIL: (id: string) => `/appointments/${id}`,
+    EDIT: (id: string) => `/appointments/${id}/edit`,
     CALENDAR: "/appointments/calendar"
   },
   CONSULTATIONS: {
     LIST: "/consultations",
     NEW: "/consultations/new",
-    DETAIL: (id: number) => `/consultations/${id}`,
-    EDIT: (id: number) => `/consultations/${id}/edit`
+    DETAIL: (id: string) => `/consultations/${id}`,
+    EDIT: (id: string) => `/consultations/${id}/edit`
   },
   SETTINGS: "/settings"
 } as const;

@@ -1,12 +1,12 @@
-import type { Patient } from "@shared/types";
+import type { Patient, PatientInput } from "@shared/types";
 
 export const useElectronAPI = () => {
   const getPatients = (): Promise<Patient[]> => {
     return window.electronAPI.getPatients();
   };
 
-  const addPatient = (name: string): Promise<Patient> => {
-    return window.electronAPI.addPatient(name);
+  const addPatient = (input: PatientInput): Promise<Patient> => {
+    return window.electronAPI.addPatient(input);
   };
 
   return { getPatients, addPatient };

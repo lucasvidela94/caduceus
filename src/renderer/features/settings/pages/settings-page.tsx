@@ -65,7 +65,7 @@ export const SettingsPage = (): ReactElement => {
     setSuccess(false);
 
     try {
-      await window.electronAPI.updateMultipleSettings(settings);
+      await window.electronAPI.updateMultipleSettings(settings as unknown as Record<string, string>);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {

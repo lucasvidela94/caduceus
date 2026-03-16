@@ -1,14 +1,32 @@
 import { ipcMain } from "electron";
-import { appointmentService } from "../../database/rxdb";
+import { appointmentService, patientService } from "../../database/rxdb";
 import { APPOINTMENT_CHANNELS } from "../../../shared/channels";
 
 export const registerAppointmentHandlers = (): void => {
   ipcMain.handle(APPOINTMENT_CHANNELS.GET_ALL, async () => {
-    return appointmentService.getAll();
+    const list = await appointmentService.getAll();
+    const result = await Promise.all(list.map(async (apt: any) => {
+      let patient = null;
+      try {
+        patient = await patientService.getById(apt.patientId);
+      } catch {
+        patient = null;
+      }
+      return { appointment: apt, patient: patient ? { id: patient.id, name: patient.name } : null };
+    }));
+    return result;
   });
 
   ipcMain.handle(APPOINTMENT_CHANNELS.GET_BY_ID, async (_, id: string) => {
-    return appointmentService.getById(id);
+    const apt = await appointmentService.getById(id);
+    if (!apt) return null;
+    let patient = null;
+    try {
+      patient = await patientService.getById((apt as any).patientId);
+    } catch {
+      patient = null;
+    }
+    return { appointment: apt, patient: patient ? { id: patient.id, name: patient.name, email: patient.email, phone: patient.phone } : null };
   });
 
   ipcMain.handle(APPOINTMENT_CHANNELS.GET_BY_PATIENT, async (_, patientId: string) => {
@@ -16,11 +34,29 @@ export const registerAppointmentHandlers = (): void => {
   });
 
   ipcMain.handle(APPOINTMENT_CHANNELS.GET_BY_DATE, async (_, date: string) => {
-    return appointmentService.getByDate(date);
+    const list = await appointmentService.getByDate(date);
+    return Promise.all(list.map(async (apt: any) => {
+      let patient = null;
+      try {
+        patient = await patientService.getById(apt.patientId);
+      } catch {
+        patient = null;
+      }
+      return { appointment: apt, patient: patient ? { id: patient.id, name: patient.name } : null };
+    }));
   });
 
   ipcMain.handle(APPOINTMENT_CHANNELS.GET_BY_DATE_RANGE, async (_, startDate: string, endDate: string) => {
-    return appointmentService.getByDateRange(startDate, endDate);
+    const list = await appointmentService.getByDateRange(startDate, endDate);
+    return Promise.all(list.map(async (apt: any) => {
+      let patient = null;
+      try {
+        patient = await patientService.getById(apt.patientId);
+      } catch {
+        patient = null;
+      }
+      return { appointment: apt, patient: patient ? { id: patient.id, name: patient.name } : null };
+    }));
   });
 
   ipcMain.handle(APPOINTMENT_CHANNELS.CREATE, async (_, data: {

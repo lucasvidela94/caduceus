@@ -1,15 +1,22 @@
 import { getRxDatabase } from "./database";
 import { v4 as uuidv4 } from "uuid";
 
+function toPatientShape(doc: { id: string; name: string; email: string | null; phone: string | null; address: string | null; notes: string | null; reminderPreference: string; createdAt: number; updatedAt: number }) {
+  return { id: doc.id, name: doc.name, email: doc.email, phone: doc.phone, address: doc.address, notes: doc.notes, reminderPreference: doc.reminderPreference, created_at: doc.createdAt, updated_at: doc.updatedAt };
+}
+
 export const patientService = {
   async getAll() {
     const db = await getRxDatabase();
-    return db.patients.find().exec();
+    const docs = await db.patients.find().exec();
+    return docs.map(d => toPatientShape(d as any));
   },
 
   async getById(id: string) {
     const db = await getRxDatabase();
-    return db.patients.findOne(id).exec();
+    const doc = await db.patients.findOne(id).exec();
+    if (!doc) throw new Error("Patient not found");
+    return toPatientShape(doc as any);
   },
 
   async create(data: {
@@ -22,7 +29,7 @@ export const patientService = {
   }) {
     const db = await getRxDatabase();
     const now = Date.now();
-    return db.patients.insert({
+    const created = await db.patients.insert({
       id: uuidv4(),
       name: data.name,
       email: data.email || null,
@@ -33,6 +40,7 @@ export const patientService = {
       createdAt: now,
       updatedAt: now,
     });
+    return toPatientShape(created as any);
   },
 
   async update(id: string, data: Partial<{
@@ -53,7 +61,8 @@ export const patientService = {
         updatedAt: Date.now(),
       },
     });
-    return patient;
+    const updated = await db.patients.findOne(id).exec();
+    return updated ? toPatientShape(updated as any) : null;
   },
 
   async delete(id: string) {
@@ -66,7 +75,7 @@ export const patientService = {
   async search(query: string) {
     const db = await getRxDatabase();
     const regex = new RegExp(query, "i");
-    return db.patients.find({
+    const docs = await db.patients.find({
       selector: {
         $or: [
           { name: { $regex: regex } },
@@ -76,5 +85,6 @@ export const patientService = {
         ],
       },
     }).exec();
+    return docs.map(d => toPatientShape(d as any));
   },
 };

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import type { ReactElement } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Breadcrumb } from "@/shared/components/breadcrumb";
 import { PageHeader } from "@/shared/components/page-header";
 import { PageContainer } from "@/shared/components/page-container";
@@ -12,15 +11,15 @@ import { Calendar, Stethoscope, User, FileText } from "lucide-react";
 
 interface ConsultationWithPatient {
   consultation: {
-    id: number;
-    patientId: number;
+    id: string;
+    patientId: string;
     date: string;
     reason: string;
     diagnosis: string;
     createdAt: string;
   };
   patient: {
-    id: number;
+    id: string;
     name: string;
   } | null;
 }

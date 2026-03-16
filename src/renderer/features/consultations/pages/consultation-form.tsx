@@ -17,15 +17,15 @@ import { Breadcrumb } from "@/shared/components/breadcrumb";
 import { PageHeader } from "@/shared/components/page-header";
 import { PageContainer } from "@/shared/components/page-container";
 import { ROUTES, BREADCRUMB_MAP } from "@/shared/lib/routes";
-import { Calendar, Stethoscope, User, Activity, FileText, Pill, FlaskConical, XRay } from "lucide-react";
+import { Calendar, Stethoscope, User, Activity, FileText, FlaskConical } from "lucide-react";
 
 interface Patient {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface ConsultationFormData {
-  patientId: number;
+  patientId: string;
   date: string;
   reason: string;
   symptoms: string;
@@ -54,7 +54,7 @@ export const ConsultationForm = (): ReactElement => {
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<ConsultationFormData>({
-    patientId: 0,
+    patientId: "",
     date: new Date().toISOString().split("T")[0],
     reason: "",
     symptoms: "",
@@ -161,9 +161,9 @@ export const ConsultationForm = (): ReactElement => {
             <div className="space-y-2">
               <Label htmlFor="patient">Paciente *</Label>
               <Select
-                value={formData.patientId.toString()}
+                value={formData.patientId}
                 onValueChange={(value) =>
-                  setFormData(prev => ({ ...prev, patientId: parseInt(value) }))
+                  setFormData(prev => ({ ...prev, patientId: value }))
                 }
               >
                 <SelectTrigger>
@@ -171,7 +171,7 @@ export const ConsultationForm = (): ReactElement => {
                 </SelectTrigger>
                 <SelectContent>
                   {patients.map((patient) => (
-                    <SelectItem key={patient.id} value={patient.id.toString()}>
+                    <SelectItem key={patient.id} value={patient.id}>
                       {patient.name}
                     </SelectItem>
                   ))}

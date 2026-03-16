@@ -12,8 +12,8 @@ import { Calendar, Clock, User, CalendarDays } from "lucide-react";
 
 interface Appointment {
   appointment: {
-    id: number;
-    patientId: number;
+    id: string;
+    patientId: string;
     date: string;
     time: string;
     duration: number;
@@ -24,7 +24,7 @@ interface Appointment {
     updatedAt: string;
   };
   patient: {
-    id: number;
+    id: string;
     name: string;
   } | null;
 }

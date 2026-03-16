@@ -44,14 +44,15 @@ const IPC_CHANNELS = {
 } as const;
 
 export interface Patient {
-  id: number;
+  id: string;
   name: string;
   email: string | null;
   phone: string | null;
   address: string | null;
   notes: string | null;
-  created_at: string;
-  updated_at: string;
+  reminderPreference: string | null;
+  created_at: number;
+  updated_at: number;
 }
 
 export interface PatientInput {
@@ -70,8 +71,8 @@ export interface BackupInfo {
 }
 
 export interface Appointment {
-  id: number;
-  patientId: number;
+  id: string;
+  patientId: string;
   date: string;
   time: string;
   duration: number;
@@ -84,7 +85,7 @@ export interface Appointment {
 }
 
 export interface AppointmentInput {
-  patientId: number;
+  patientId: string;
   date: string;
   time: string;
   duration?: number;
@@ -93,8 +94,8 @@ export interface AppointmentInput {
 }
 
 export interface Consultation {
-  id: number;
-  patientId: number;
+  id: string;
+  patientId: string;
   date: string;
   reason: string;
   symptoms?: string;
@@ -120,7 +121,7 @@ export interface Consultation {
 }
 
 export interface ConsultationInput {
-  patientId: number;
+  patientId: string;
   date: string;
   reason: string;
   symptoms?: string;
@@ -145,9 +146,9 @@ export interface ConsultationInput {
 export interface ElectronAPI {
   getPatients: () => Promise<Patient[]>;
   addPatient: (input: PatientInput) => Promise<Patient>;
-  getPatient: (id: number) => Promise<Patient>;
-  updatePatient: (id: number, input: Partial<PatientInput>) => Promise<Patient>;
-  deletePatient: (id: number) => Promise<{ success: boolean }>;
+  getPatient: (id: string) => Promise<Patient>;
+  updatePatient: (id: string, input: Partial<PatientInput>) => Promise<Patient>;
+  deletePatient: (id: string) => Promise<{ success: boolean }>;
   searchPatients: (query: string) => Promise<Patient[]>;
   createBackup: () => Promise<{ success: boolean; path: string }>;
   listBackups: () => Promise<BackupInfo[]>;
@@ -157,21 +158,21 @@ export interface ElectronAPI {
   exportCSV: () => Promise<{ success: boolean; canceled?: boolean; path?: string }>;
   checkIntegrity: () => Promise<{ ok: boolean; errors: string[] }>;
   getAppointments: () => Promise<Appointment[]>;
-  getAppointmentById: (id: number) => Promise<Appointment | null>;
-  getAppointmentsByPatient: (patientId: number) => Promise<Appointment[]>;
+  getAppointmentById: (id: string) => Promise<Appointment | null>;
+  getAppointmentsByPatient: (patientId: string) => Promise<Appointment[]>;
   getAppointmentsByDate: (date: string) => Promise<Appointment[]>;
   getAppointmentsByDateRange: (startDate: string, endDate: string) => Promise<Appointment[]>;
   createAppointment: (input: AppointmentInput) => Promise<Appointment>;
-  updateAppointment: (id: number, input: Partial<AppointmentInput>) => Promise<Appointment>;
-  deleteAppointment: (id: number) => Promise<void>;
+  updateAppointment: (id: string, input: Partial<AppointmentInput>) => Promise<Appointment>;
+  deleteAppointment: (id: string) => Promise<void>;
   getAvailableSlots: (date: string, duration?: number) => Promise<string[]>;
   getConsultations: () => Promise<Consultation[]>;
-  getConsultationById: (id: number) => Promise<Consultation | null>;
-  getConsultationsByPatient: (patientId: number) => Promise<Consultation[]>;
+  getConsultationById: (id: string) => Promise<Consultation | null>;
+  getConsultationsByPatient: (patientId: string) => Promise<Consultation[]>;
   getConsultationsByDateRange: (startDate: string, endDate: string) => Promise<Consultation[]>;
   createConsultation: (input: ConsultationInput) => Promise<Consultation>;
-  updateConsultation: (id: number, input: Partial<ConsultationInput>) => Promise<Consultation>;
-  deleteConsultation: (id: number) => Promise<void>;
+  updateConsultation: (id: string, input: Partial<ConsultationInput>) => Promise<Consultation>;
+  deleteConsultation: (id: string) => Promise<void>;
   getSettings: () => Promise<Record<string, string>>;
   getSettingByKey: (key: string) => Promise<string | null>;
   setSettingValue: (key: string, value: string) => Promise<unknown>;
@@ -191,9 +192,9 @@ export interface ElectronAPI {
     end: string;
     appointmentDuration: number;
   }>;
-  createRemindersForAppointment: (appointmentId: number) => Promise<unknown[]>;
-  getRemindersByAppointment: (appointmentId: number) => Promise<unknown[]>;
-  cancelReminders: (appointmentId: number) => Promise<void>;
+  createRemindersForAppointment: (appointmentId: string) => Promise<unknown[]>;
+  getRemindersByAppointment: (appointmentId: string) => Promise<unknown[]>;
+  cancelReminders: (appointmentId: string) => Promise<void>;
   getReminderStats: () => Promise<{
     total: number;
     pending: number;
@@ -208,11 +209,11 @@ const api: ElectronAPI = {
     ipcRenderer.invoke(IPC_CHANNELS.GET_PATIENTS),
   addPatient: (input: PatientInput): Promise<Patient> =>
     ipcRenderer.invoke(IPC_CHANNELS.ADD_PATIENT, input),
-  getPatient: (id: number): Promise<Patient> =>
+  getPatient: (id: string): Promise<Patient> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_PATIENT, id),
-  updatePatient: (id: number, input: Partial<PatientInput>): Promise<Patient> =>
+  updatePatient: (id: string, input: Partial<PatientInput>): Promise<Patient> =>
     ipcRenderer.invoke(IPC_CHANNELS.UPDATE_PATIENT, id, input),
-  deletePatient: (id: number): Promise<{ success: boolean }> =>
+  deletePatient: (id: string): Promise<{ success: boolean }> =>
     ipcRenderer.invoke(IPC_CHANNELS.DELETE_PATIENT, id),
   searchPatients: (query: string): Promise<Patient[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.SEARCH_PATIENTS, query),
@@ -232,9 +233,9 @@ const api: ElectronAPI = {
     ipcRenderer.invoke(IPC_CHANNELS.CHECK_INTEGRITY),
   getAppointments: (): Promise<Appointment[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_APPOINTMENTS),
-  getAppointmentById: (id: number): Promise<Appointment | null> =>
+  getAppointmentById: (id: string): Promise<Appointment | null> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_APPOINTMENT_BY_ID, id),
-  getAppointmentsByPatient: (patientId: number): Promise<Appointment[]> =>
+  getAppointmentsByPatient: (patientId: string): Promise<Appointment[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_APPOINTMENTS_BY_PATIENT, patientId),
   getAppointmentsByDate: (date: string): Promise<Appointment[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_APPOINTMENTS_BY_DATE, date),
@@ -242,25 +243,25 @@ const api: ElectronAPI = {
     ipcRenderer.invoke(IPC_CHANNELS.GET_APPOINTMENTS_BY_DATE_RANGE, startDate, endDate),
   createAppointment: (input: AppointmentInput): Promise<Appointment> =>
     ipcRenderer.invoke(IPC_CHANNELS.CREATE_APPOINTMENT, input),
-  updateAppointment: (id: number, input: Partial<AppointmentInput>): Promise<Appointment> =>
+  updateAppointment: (id: string, input: Partial<AppointmentInput>): Promise<Appointment> =>
     ipcRenderer.invoke(IPC_CHANNELS.UPDATE_APPOINTMENT, id, input),
-  deleteAppointment: (id: number): Promise<void> =>
+  deleteAppointment: (id: string): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.DELETE_APPOINTMENT, id),
   getAvailableSlots: (date: string, duration?: number): Promise<string[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_AVAILABLE_SLOTS, date, duration),
   getConsultations: (): Promise<Consultation[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_CONSULTATIONS),
-  getConsultationById: (id: number): Promise<Consultation | null> =>
+  getConsultationById: (id: string): Promise<Consultation | null> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_CONSULTATION_BY_ID, id),
-  getConsultationsByPatient: (patientId: number): Promise<Consultation[]> =>
+  getConsultationsByPatient: (patientId: string): Promise<Consultation[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_CONSULTATIONS_BY_PATIENT, patientId),
   getConsultationsByDateRange: (startDate: string, endDate: string): Promise<Consultation[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_CONSULTATIONS_BY_DATE_RANGE, startDate, endDate),
   createConsultation: (input: ConsultationInput): Promise<Consultation> =>
     ipcRenderer.invoke(IPC_CHANNELS.CREATE_CONSULTATION, input),
-  updateConsultation: (id: number, input: Partial<ConsultationInput>): Promise<Consultation> =>
+  updateConsultation: (id: string, input: Partial<ConsultationInput>): Promise<Consultation> =>
     ipcRenderer.invoke(IPC_CHANNELS.UPDATE_CONSULTATION, id, input),
-  deleteConsultation: (id: number): Promise<void> =>
+  deleteConsultation: (id: string): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.DELETE_CONSULTATION, id),
   getSettings: (): Promise<Record<string, string>> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_SETTINGS),
@@ -287,11 +288,11 @@ const api: ElectronAPI = {
     appointmentDuration: number;
   }> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_WORKING_HOURS),
-  createRemindersForAppointment: (appointmentId: number): Promise<unknown[]> =>
+  createRemindersForAppointment: (appointmentId: string): Promise<unknown[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.CREATE_REMINDERS_FOR_APPOINTMENT, appointmentId),
-  getRemindersByAppointment: (appointmentId: number): Promise<unknown[]> =>
+  getRemindersByAppointment: (appointmentId: string): Promise<unknown[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_REMINDERS_BY_APPOINTMENT, appointmentId),
-  cancelReminders: (appointmentId: number): Promise<void> =>
+  cancelReminders: (appointmentId: string): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.CANCEL_REMINDERS, appointmentId),
   getReminderStats: (): Promise<{
     total: number;

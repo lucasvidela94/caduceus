@@ -9,14 +9,13 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { Breadcrumb } from "@/shared/components/breadcrumb";
 import { PageHeader } from "@/shared/components/page-header";
 import { PageContainer } from "@/shared/components/page-container";
 import { CardSkeleton } from "@/shared/components/loading-state";
 import { ROUTES } from "@/shared/lib/routes";
-import { Calendar, User, Stethoscope, FileText, ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { Calendar, User, Stethoscope, FileText, ArrowLeft, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,8 +30,8 @@ import {
 
 interface AppointmentDetail {
   appointment: {
-    id: number;
-    patientId: number;
+    id: string;
+    patientId: string;
     date: string;
     time: string;
     duration: number;
@@ -43,7 +42,7 @@ interface AppointmentDetail {
     updatedAt: string;
   };
   patient: {
-    id: number;
+    id: string;
     name: string;
     email: string | null;
     phone: string | null;
@@ -78,7 +77,7 @@ export const AppointmentDetail = (): ReactElement => {
 
   const loadAppointment = async () => {
     try {
-      const data = await window.electronAPI.getAppointmentById(Number(id));
+      const data = await window.electronAPI.getAppointmentById(id ?? "");
       if (data) {
         setAppointment(data);
       } else {
@@ -93,7 +92,7 @@ export const AppointmentDetail = (): ReactElement => {
 
   const handleDelete = async () => {
     try {
-      await window.electronAPI.deleteAppointment(Number(id));
+      await window.electronAPI.deleteAppointment(id ?? "");
       window.location.hash = `#${ROUTES.APPOINTMENTS.LIST}`;
     } catch (err) {
       setError("Error al eliminar el turno");
@@ -102,7 +101,7 @@ export const AppointmentDetail = (): ReactElement => {
 
   const handleStatusChange = async (status: string) => {
     try {
-      await window.electronAPI.updateAppointment(Number(id), { status });
+      await window.electronAPI.updateAppointment(id ?? "", { status: status as "pending" | "completed" | "cancelled" | "no-show" });
       loadAppointment();
     } catch (err) {
       setError("Error al actualizar el estado");

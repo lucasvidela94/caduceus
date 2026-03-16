@@ -22,13 +22,13 @@ interface DashboardStats {
   pendingAppointments: number;
   todayAppointments: number;
   recentConsultations: Array<{
-    id: number;
+    id: string;
     patientName: string;
     date: string;
     reason: string;
   }>;
   upcomingAppointments: Array<{
-    id: number;
+    id: string;
     patientName: string;
     time: string;
     reason: string;

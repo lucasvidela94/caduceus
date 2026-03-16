@@ -22,7 +22,7 @@ export const useParams = () => {
       }
 
       setParams({
-        id: id && !isNaN(Number(id)) ? id : "",
+        id: id ?? "",
         ...queryParams
       });
     };

@@ -1,10 +1,14 @@
 import { ipcMain } from "electron";
-import { consultationService } from "../../database/rxdb";
+import { consultationService, patientService } from "../../database/rxdb";
 import { CONSULTATION_CHANNELS } from "../../../shared/channels";
 
 export const registerConsultationHandlers = (): void => {
   ipcMain.handle(CONSULTATION_CHANNELS.GET_ALL, async () => {
-    return consultationService.getAll();
+    const list = await consultationService.getAll();
+    return Promise.all(list.map(async (c: any) => {
+      const patient = await patientService.getById(c.patientId).catch(() => null);
+      return { consultation: c, patient: patient ? { id: patient.id, name: patient.name } : null };
+    }));
   });
 
   ipcMain.handle(CONSULTATION_CHANNELS.GET_BY_ID, async (_, id: string) => {

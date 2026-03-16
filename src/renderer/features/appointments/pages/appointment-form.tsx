@@ -20,12 +20,12 @@ import { Calendar, Clock, User, Stethoscope, Bell } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface Patient {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface AppointmentFormData {
-  patientId: number;
+  patientId: string;
   date: string;
   time: string;
   duration: number;
@@ -49,7 +49,7 @@ export const AppointmentForm = (): ReactElement => {
   const [error, setError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState<AppointmentFormData>({
-    patientId: 0,
+    patientId: "",
     date: new Date().toISOString().split("T")[0],
     time: "",
     duration: 30,
@@ -161,9 +161,9 @@ export const AppointmentForm = (): ReactElement => {
                 Paciente *
               </Label>
               <Select
-                value={formData.patientId.toString()}
+                value={formData.patientId}
                 onValueChange={(value) =>
-                  setFormData(prev => ({ ...prev, patientId: parseInt(value) }))
+                  setFormData(prev => ({ ...prev, patientId: value }))
                 }
               >
                 <SelectTrigger>
@@ -171,7 +171,7 @@ export const AppointmentForm = (): ReactElement => {
                 </SelectTrigger>
                 <SelectContent>
                   {patients.map((patient) => (
-                    <SelectItem key={patient.id} value={patient.id.toString()}>
+                    <SelectItem key={patient.id} value={patient.id}>
                       {patient.name}
                     </SelectItem>
                   ))}

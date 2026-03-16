@@ -79,13 +79,13 @@ export const PatientRepository = {
 };
 
 const mapToPatient = (row: typeof patients.$inferSelect): Patient => ({
-  id: row.id,
+  id: String(row.id),
   name: row.name,
   email: row.email,
   phone: row.phone,
   address: row.address,
   notes: row.notes,
   reminderPreference: row.reminderPreference,
-  created_at: row.createdAt?.toISOString() || new Date().toISOString(),
-  updated_at: row.updatedAt?.toISOString() || new Date().toISOString()
+  created_at: Date.parse(row.createdAt?.toISOString() || new Date().toISOString()),
+  updated_at: Date.parse(row.updatedAt?.toISOString() || new Date().toISOString())
 });
