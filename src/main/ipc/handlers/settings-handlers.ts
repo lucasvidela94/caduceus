@@ -1,7 +1,6 @@
 import { ipcMain } from "electron";
-import { settingsService } from "../../services/settings-service";
+import { settingsService } from "../../database/rxdb";
 import { SETTING_CHANNELS } from "../../../shared/channels";
-import { SettingKey } from "../../database/schema/settings";
 
 export const registerSettingsHandlers = (): void => {
   ipcMain.handle(SETTING_CHANNELS.GET_ALL, async () => {
@@ -12,11 +11,11 @@ export const registerSettingsHandlers = (): void => {
     return settingsService.getByKey(key);
   });
 
-  ipcMain.handle(SETTING_CHANNELS.SET_VALUE, async (_, key: SettingKey, value: string) => {
+  ipcMain.handle(SETTING_CHANNELS.SET_VALUE, async (_, key: string, value: string) => {
     return settingsService.setValue(key, value);
   });
 
-  ipcMain.handle(SETTING_CHANNELS.UPDATE_MULTIPLE, async (_, values: Record<SettingKey, string>) => {
+  ipcMain.handle(SETTING_CHANNELS.UPDATE_MULTIPLE, async (_, values: Record<string, string>) => {
     return settingsService.updateMultiple(values);
   });
 

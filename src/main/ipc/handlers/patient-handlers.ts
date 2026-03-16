@@ -1,7 +1,6 @@
 import { ipcMain, BrowserWindow, type IpcMainInvokeEvent } from "electron";
 import { IPC_CHANNELS } from "../channels";
-import { PatientService } from "../../services/patient-service";
-import type { PatientInput } from "../../../shared/types";
+import { patientService } from "../../database/rxdb";
 
 const validateSender = (event: IpcMainInvokeEvent): boolean => {
   const webContents = event.sender;
@@ -16,47 +15,61 @@ export const registerPatientHandlers = (): void => {
       if (!validateSender(event)) {
         throw new Error("Invalid sender");
       }
-      return PatientService.getAll();
+      return patientService.getAll();
     }
   );
 
   ipcMain.handle(
     IPC_CHANNELS.ADD_PATIENT,
-    async (event: IpcMainInvokeEvent, input: PatientInput) => {
+    async (event: IpcMainInvokeEvent, input: {
+      name: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      notes?: string;
+      reminderPreference?: string;
+    }) => {
       if (!validateSender(event)) {
         throw new Error("Invalid sender");
       }
-      return PatientService.create(input);
+      return patientService.create(input);
     }
   );
 
   ipcMain.handle(
     IPC_CHANNELS.GET_PATIENT,
-    async (event: IpcMainInvokeEvent, id: number) => {
+    async (event: IpcMainInvokeEvent, id: string) => {
       if (!validateSender(event)) {
         throw new Error("Invalid sender");
       }
-      return PatientService.getById(id);
+      return patientService.getById(id);
     }
   );
 
   ipcMain.handle(
     IPC_CHANNELS.UPDATE_PATIENT,
-    async (event: IpcMainInvokeEvent, id: number, input: Partial<PatientInput>) => {
+    async (event: IpcMainInvokeEvent, id: string, input: Partial<{
+      name: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      notes?: string;
+      reminderPreference?: string;
+    }>) => {
       if (!validateSender(event)) {
         throw new Error("Invalid sender");
       }
-      return PatientService.update(id, input);
+      return patientService.update(id, input);
     }
   );
 
   ipcMain.handle(
     IPC_CHANNELS.DELETE_PATIENT,
-    async (event: IpcMainInvokeEvent, id: number) => {
+    async (event: IpcMainInvokeEvent, id: string) => {
       if (!validateSender(event)) {
         throw new Error("Invalid sender");
       }
-      PatientService.delete(id);
+      await patientService.delete(id);
       return { success: true };
     }
   );
@@ -67,7 +80,7 @@ export const registerPatientHandlers = (): void => {
       if (!validateSender(event)) {
         throw new Error("Invalid sender");
       }
-      return PatientService.search(query);
+      return patientService.search(query);
     }
   );
 };
