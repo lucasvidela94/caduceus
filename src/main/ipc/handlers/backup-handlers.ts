@@ -1,9 +1,6 @@
 import { ipcMain, BrowserWindow, type IpcMainInvokeEvent } from "electron";
-import * as path from "path";
 import { IPC_CHANNELS } from "../channels";
 import { createBackup, listBackups, restoreBackup } from "../../services/backup-service";
-
-const DB_PATH = path.join(process.cwd(), "caduceus.db");
 
 const validateSender = (event: IpcMainInvokeEvent): boolean => {
   const webContents = event.sender;
@@ -18,7 +15,7 @@ export const registerBackupHandlers = (): void => {
       if (!validateSender(event)) {
         throw new Error("Invalid sender");
       }
-      const backupPath = createBackup(DB_PATH);
+      const backupPath = await createBackup("");
       return { success: true, path: backupPath };
     }
   );
@@ -39,7 +36,7 @@ export const registerBackupHandlers = (): void => {
       if (!validateSender(event)) {
         throw new Error("Invalid sender");
       }
-      restoreBackup(backupPath, DB_PATH);
+      await restoreBackup(backupPath);
       return { success: true };
     }
   );

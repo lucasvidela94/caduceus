@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { PatientRepository } from "../database/repositories/patient-repository";
-import { getConnection } from "../database/connection";
+import { patientService } from "../database/rxdb";
 import type { Patient } from "../../shared/types";
 
 export interface ExportData {
@@ -10,11 +9,11 @@ export interface ExportData {
   patients: Patient[];
 }
 
-export const exportToJSON = (filePath: string): void => {
-  const patients = PatientRepository.findAll();
+export const exportToJSON = async (filePath: string): Promise<void> => {
+  const patients = await patientService.getAll();
 
   const exportData: ExportData = {
-    version: "0.2.0",
+    version: "0.3.0",
     exportedAt: new Date().toISOString(),
     patients
   };
@@ -22,7 +21,7 @@ export const exportToJSON = (filePath: string): void => {
   fs.writeFileSync(filePath, JSON.stringify(exportData, null, 2), "utf8");
 };
 
-export const importFromJSON = (filePath: string): { imported: number; errors: string[] } => {
+export const importFromJSON = async (filePath: string): Promise<{ imported: number; errors: string[] }> => {
   if (!fs.existsSync(filePath)) {
     throw new Error(`File not found: ${filePath}`);
   }
@@ -40,7 +39,7 @@ export const importFromJSON = (filePath: string): { imported: number; errors: st
   for (const patient of data.patients) {
     try {
       if (patient.name && typeof patient.name === "string") {
-        PatientRepository.create({
+        await patientService.create({
           name: patient.name,
           email: patient.email || undefined,
           phone: patient.phone || undefined,
@@ -57,8 +56,8 @@ export const importFromJSON = (filePath: string): { imported: number; errors: st
   return { imported, errors };
 };
 
-export const exportToCSV = (filePath: string): void => {
-  const patients = PatientRepository.findAll();
+export const exportToCSV = async (filePath: string): Promise<void> => {
+  const patients = await patientService.getAll();
 
   const header = "id,name,email,phone,address,notes,created_at,updated_at";
   const rows = patients.map((p) => {
@@ -73,34 +72,25 @@ export const exportToCSV = (filePath: string): void => {
   fs.writeFileSync(filePath, csv, "utf8");
 };
 
-export const checkIntegrity = (): { ok: boolean; errors: string[] } => {
+export const checkIntegrity = async (): Promise<{ ok: boolean; errors: string[] }> => {
   const errors: string[] = [];
 
   try {
-    const db = getConnection();
-    const sqlite = db.$client as { prepare: (sql: string) => { all: () => unknown[]; get: () => unknown } };
-
-    const patientCount = sqlite.prepare("SELECT COUNT(*) as count FROM patients").get() as { count: number };
-    if (!patientCount || typeof patientCount.count !== "number") {
-      errors.push("Invalid patient count result");
+    const patients = await patientService.getAll();
+    
+    // Check for patients with invalid names
+    const invalidPatients = patients.filter(p => !p.name || p.name.trim() === "");
+    if (invalidPatients.length > 0) {
+      errors.push(`Found ${invalidPatients.length} patients with invalid names`);
     }
 
-    const tables = sqlite.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as Array<{ name: string }>;
-    const requiredTables = ["patients"];
-    const existingTables = tables.map((t) => t.name);
-
-    for (const required of requiredTables) {
-      if (!existingTables.includes(required)) {
-        errors.push(`Missing required table: ${required}`);
-      }
+    // Check for duplicate IDs
+    const ids = patients.map(p => p.id);
+    const uniqueIds = new Set(ids);
+    if (ids.length !== uniqueIds.size) {
+      errors.push("Found duplicate patient IDs");
     }
 
-    const invalidPatients = sqlite.prepare("SELECT COUNT(*) as count FROM patients WHERE name IS NULL OR name = ''").get() as { count: number };
-    if (invalidPatients.count > 0) {
-      errors.push(`Found ${invalidPatients.count} patients with invalid names`);
-    }
-
-    sqlite.prepare("PRAGMA integrity_check").all();
   } catch (error) {
     errors.push(`Integrity check failed: ${error instanceof Error ? error.message : "Unknown error"}`);
   }

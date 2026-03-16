@@ -27,7 +27,7 @@ export const registerDataHandlers = (): void => {
         return { success: false, canceled: true };
       }
 
-      exportToJSON(result.filePath);
+      await exportToJSON(result.filePath);
       return { success: true, path: result.filePath };
     }
   );
@@ -50,7 +50,7 @@ export const registerDataHandlers = (): void => {
         return { success: false, canceled: true };
       }
 
-      const importResult = importFromJSON(result.filePaths[0]);
+      const importResult = await importFromJSON(result.filePaths[0]);
       return { success: true, ...importResult };
     }
   );
@@ -73,7 +73,7 @@ export const registerDataHandlers = (): void => {
         return { success: false, canceled: true };
       }
 
-      exportToCSV(result.filePath);
+      await exportToCSV(result.filePath);
       return { success: true, path: result.filePath };
     }
   );
@@ -84,7 +84,7 @@ export const registerDataHandlers = (): void => {
       if (!validateSender(event)) {
         throw new Error("Invalid sender");
       }
-      return checkIntegrity();
+      return await checkIntegrity();
     }
   );
 };

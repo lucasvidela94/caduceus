@@ -3,8 +3,8 @@ import * as path from "path";
 import { createMainWindow } from "./window/window-manager";
 import { setupMenu } from "./window/menu";
 import { registerIpcHandlers } from "./ipc";
-import { runMigrations, backupBeforeMigration } from "./database/connection";
 import { createBackup, cleanupOldBackups } from "./services/backup-service";
+import { getRxDatabase } from "./database/rxdb/database";
 
 const PLATFORM = {
   DARWIN: "darwin"
@@ -14,21 +14,12 @@ const DB_PATH = path.join(process.cwd(), "caduceus.db");
 
 export const initializeApp = (): void => {
   app.whenReady().then(async () => {
-    // Backup before running migrations
+    // Initialize RxDB database
     try {
-      const backupPath = await backupBeforeMigration();
-      console.log("Database backup created:", backupPath);
+      await getRxDatabase();
+      console.log("RxDB database initialized");
     } catch (error) {
-      console.error("Failed to create backup before migration:", error);
-    }
-
-    // Run Drizzle migrations
-    try {
-      runMigrations();
-      console.log("Database migrations completed");
-    } catch (error) {
-      console.error("Migration failed:", error);
-      // Continue anyway - the app should still work with existing schema
+      console.error("Failed to initialize RxDB:", error);
     }
 
     registerIpcHandlers();

@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { app } from "electron";
+import { patientService, appointmentService, consultationService, settingsService } from "../database/rxdb";
 
 const BACKUP_RETENTION_DAYS = 30;
 const MAX_BACKUP_COUNT = 10;
@@ -16,14 +17,40 @@ export const ensureBackupDirectory = (): void => {
   }
 };
 
-export const createBackup = (dbPath: string): string => {
+export interface BackupData {
+  version: string;
+  exportedAt: string;
+  patients: any[];
+  appointments: any[];
+  consultations: any[];
+  settings: Record<string, string>;
+}
+
+export const createBackup = async (_dbPath: string): Promise<string> => {
   ensureBackupDirectory();
   
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const backupFileName = `caduceus-backup-${timestamp}.db`;
+  const backupFileName = `caduceus-backup-${timestamp}.json`;
   const backupPath = path.join(getBackupDirectory(), backupFileName);
   
-  fs.copyFileSync(dbPath, backupPath);
+  // Export all data from RxDB
+  const [patients, appointments, consultations, settings] = await Promise.all([
+    patientService.getAll(),
+    appointmentService.getAll(),
+    consultationService.getAll(),
+    settingsService.getAll()
+  ]);
+  
+  const backupData: BackupData = {
+    version: "0.3.0",
+    exportedAt: new Date().toISOString(),
+    patients,
+    appointments,
+    consultations,
+    settings
+  };
+  
+  fs.writeFileSync(backupPath, JSON.stringify(backupData, null, 2), "utf8");
   
   return backupPath;
 };
@@ -36,7 +63,7 @@ export const listBackups = (): Array<{ name: string; path: string; size: number;
   }
   
   const files = fs.readdirSync(backupDir)
-    .filter((file) => file.endsWith(".db"))
+    .filter((file) => file.endsWith(".json"))
     .map((file) => {
       const filePath = path.join(backupDir, file);
       const stats = fs.statSync(filePath);
@@ -83,20 +110,55 @@ export const cleanupOldBackups = (): void => {
   }
 };
 
-export const restoreBackup = (backupPath: string, targetPath: string): void => {
+export const restoreBackup = async (backupPath: string): Promise<void> => {
   if (!fs.existsSync(backupPath)) {
     throw new Error(`Backup file not found: ${backupPath}`);
   }
   
-  // Create backup of current database before restoring
-  if (fs.existsSync(targetPath)) {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const preRestoreBackup = path.join(
-      getBackupDirectory(),
-      `caduceus-pre-restore-${timestamp}.db`
-    );
-    fs.copyFileSync(targetPath, preRestoreBackup);
+  const content = fs.readFileSync(backupPath, "utf8");
+  const data: BackupData = JSON.parse(content);
+  
+  // Restore patients
+  if (data.patients) {
+    for (const patient of data.patients) {
+      try {
+        await patientService.create(patient);
+      } catch (error) {
+        console.error(`Failed to restore patient: ${patient.name}`, error);
+      }
+    }
   }
   
-  fs.copyFileSync(backupPath, targetPath);
+  // Restore appointments
+  if (data.appointments) {
+    for (const appointment of data.appointments) {
+      try {
+        await appointmentService.create(appointment);
+      } catch (error) {
+        console.error(`Failed to restore appointment: ${appointment.id}`, error);
+      }
+    }
+  }
+  
+  // Restore consultations
+  if (data.consultations) {
+    for (const consultation of data.consultations) {
+      try {
+        await consultationService.create(consultation);
+      } catch (error) {
+        console.error(`Failed to restore consultation: ${consultation.id}`, error);
+      }
+    }
+  }
+  
+  // Restore settings
+  if (data.settings) {
+    for (const [key, value] of Object.entries(data.settings)) {
+      try {
+        await settingsService.setValue(key, value);
+      } catch (error) {
+        console.error(`Failed to restore setting: ${key}`, error);
+      }
+    }
+  }
 };
