@@ -3,6 +3,7 @@ import { getRxStorageDexie } from "rxdb/plugins/storage-dexie";
 import { RxDBQueryBuilderPlugin } from "rxdb/plugins/query-builder";
 import { RxDBUpdatePlugin } from "rxdb/plugins/update";
 import { RxDBDevModePlugin } from "rxdb/plugins/dev-mode";
+import { wrappedValidateAjvStorage } from "rxdb/plugins/validate-ajv";
 
 // Add plugins
 addRxPlugin(RxDBQueryBuilderPlugin);
@@ -207,9 +208,13 @@ const settingsSchema = {
 export const getRxDatabase = async (): Promise<RxDatabase> => {
   if (db) return db;
 
+  const storage = process.env.NODE_ENV === "development"
+    ? wrappedValidateAjvStorage({ storage: getRxStorageDexie() })
+    : getRxStorageDexie();
+
   db = await createRxDatabase({
     name: "caduceus",
-    storage: getRxStorageDexie(),
+    storage,
     ignoreDuplicate: true,
   });
 
