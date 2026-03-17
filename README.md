@@ -281,17 +281,20 @@ Caduceus uses a **modern offline-first architecture** with RxDB:
 
 ---
 
-## Data Storage
+## Data Storage & Security
 
-Caduceus uses **RxDB** with JSON file persistence for a modern offline-first experience:
+Caduceus uses **RxDB** with **AES-256 encrypted** JSON persistence for secure medical data storage:
 
 - **Storage Location**: User's application data directory
   - Linux: `~/.config/Caduceus/rxdb-data/`
   - Windows: `%APPDATA%/Caduceus/rxdb-data/`
   - macOS: `~/Library/Application Support/Caduceus/rxdb-data/`
-- **Format**: Human-readable JSON files
+- **Encryption**: AES-256-GCM (industry standard)
+  - Database file encrypted at rest
+  - Encryption key stored separately with restricted permissions
+  - Authentication tag prevents tampering
 - **Auto-Save**: Every 5 seconds
-- **Backup**: Simply copy the `rxdb-data` folder
+- **Backup**: Copy the `rxdb-data` folder (backup includes encrypted data)
 - **Multi-Instance**: Supports multiple PCs per clinic
 - **Sync-Ready**: Architecture prepared for future cloud synchronization
 
@@ -309,6 +312,7 @@ Caduceus uses **RxDB** with JSON file persistence for a modern offline-first exp
 
 ### Benefits
 
+- ✅ **Encrypted at Rest** - AES-256 encryption for medical data
 - ✅ **No Native Dependencies** - Pure JavaScript, no compilation issues
 - ✅ **Offline-First** - Works without internet
 - ✅ **Reactive** - Real-time UI updates
