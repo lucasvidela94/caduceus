@@ -3,7 +3,7 @@ import * as path from "path";
 import { createMainWindow } from "./window/window-manager";
 import { setupMenu } from "./window/menu";
 import { registerIpcHandlers } from "./ipc";
-import { exposeRxStorage } from "./storage";
+import { initializeStorage, exposeRxStorage } from "./storage";
 
 const PLATFORM = {
   DARWIN: "darwin"
@@ -11,6 +11,7 @@ const PLATFORM = {
 
 export const initializeApp = (): void => {
   app.whenReady().then(async () => {
+    await initializeStorage();
     exposeRxStorage();
     registerIpcHandlers();
     setupMenu();
