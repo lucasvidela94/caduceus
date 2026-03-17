@@ -35,7 +35,8 @@ Caduceus is a **local-first**, privacy-focused desktop application for medical p
 - **Offline-First** - Works without internet
 - **Privacy-Focused** - No cloud, no subscriptions, no vendor lock-in
 - **Open Source** - Transparent, auditable code
-- **Ready for Cloud Sync** - Architecture prepared for future offline-first sync
+- **Multi-Instance Ready** - Supports multiple PCs per clinic
+- **Future-Proof** - RxDB architecture ready for cloud sync
 
 ---
 
@@ -45,8 +46,10 @@ Caduceus is a **local-first**, privacy-focused desktop application for medical p
 - Create, view, edit and delete patient records
 - Advanced patient search (name, email, phone, address)
 - Patient contact preferences (email, SMS, both, none)
-- Persistent local storage with SQLite
+- Persistent local storage with RxDB (JSON-based)
+- Offline-first architecture
 - Data export (JSON, CSV)
+- Automatic data persistence
 
 ### Appointment Scheduling
 - Full appointment calendar with daily/weekly views
@@ -121,8 +124,8 @@ Caduceus is a **local-first**, privacy-focused desktop application for medical p
 | Frontend | React 19, TypeScript |
 | Styling | Tailwind CSS, shadcn/ui |
 | Desktop | Electron 35 |
-| Database | SQLite (better-sqlite3) |
-| ORM | Drizzle ORM |
+| Database | RxDB (JSON persistence) |
+| Storage | JSON files with auto-sync |
 | Validation | Zod |
 | Testing | Vitest |
 | Build | Vite |
@@ -169,21 +172,14 @@ pnpm build
 pnpm start
 ```
 
-### Database Operations
+### Database
 
-```bash
-# Generate migrations
-pnpm db:generate
+The application uses **RxDB** with JSON file persistence:
 
-# Run migrations
-pnpm db:migrate
-
-# Push schema changes
-pnpm db:push
-
-# Open Drizzle Studio
-pnpm db:studio
-```
+- Data is stored in the user's data directory (`~/.config/Caduceus/rxdb-data/` on Linux, `%APPDATA%/Caduceus/rxdb-data/` on Windows)
+- Auto-saved every 5 seconds
+- Human-readable JSON format for easy backup/inspection
+- No migrations needed - RxDB handles schema versions automatically
 
 ### Run Tests
 
@@ -201,15 +197,15 @@ pnpm test:coverage  # Run tests with coverage
 caduceus/
 ├── src/
 │   ├── main/                    # Electron main process
-│   │   ├── database/            # SQLite connection & migrations
-│   │   │   ├── repositories/    # Data access layer
-│   │   │   └── schema/          # Database schemas
+│   │   ├── storage.ts           # RxStorage exposer (JSON persistence)
 │   │   ├── ipc/                 # IPC handlers
 │   │   │   └── handlers/        # Feature handlers
-│   │   ├── services/            # Business logic
+│   │   ├── services/            # Business logic (backup, export)
 │   │   └── window/              # Window & menu management
 │   ├── preload/                 # Preload scripts (secure bridge)
 │   └── renderer/                # React frontend
+│       ├── database/            # RxDB database & schemas
+│       ├── services/            # RxDB services (patients, appointments, etc.)
 │       ├── features/            # Feature modules
 │       │   ├── dashboard/
 │       │   ├── patients/
@@ -220,7 +216,6 @@ caduceus/
 │       │   ├── components/      # Reusable UI components
 │       │   └── lib/             # Utilities (routes, validation)
 │       └── components/          # shadcn/ui components
-├── drizzle/                     # Database migrations
 ├── dist/                        # Build output
 └── tests/                       # Test files
 ```
@@ -229,23 +224,27 @@ caduceus/
 
 ## Architecture
 
+### Architecture Overview
+Caduceus uses a **modern offline-first architecture** with RxDB:
+
 ### Backend (Main Process)
-- **Repository Pattern**: Clean data access abstraction
-- **Service Layer**: Business logic independent of UI
-- **IPC Handlers**: Secure communication between processes
-- **Schema-First**: Database schemas with Drizzle ORM
+- **RxStorage**: JSON file persistence with auto-save
+- **IPC Bridge**: Secure communication between processes
+- **Services**: Backup, export/import functionality
 
-### Frontend (Renderer)
+### Frontend (Renderer Process)
+- **RxDB**: Local database with reactive queries
+- **Services**: Business logic (patients, appointments, consultations)
 - **Feature-Based**: Each feature is self-contained
-- **Shared Components**: Reusable UI components
 - **Hash Router**: Works with file:// protocol
-- **Hooks**: Custom hooks for data fetching
 
-### Database
-- **SQLite**: Local-first database
-- **Migrations**: Version-controlled schema changes
-- **Relations**: Proper foreign key relationships
-- **Type-Safe**: Full TypeScript support with Drizzle
+### Database (RxDB)
+- **Offline-First**: Works without internet
+- **Reactive**: Real-time UI updates
+- **JSON Persistence**: Human-readable, easy to backup
+- **Multi-Instance**: Ready for multiple PCs per clinic
+- **Future Sync**: Architecture ready for cloud synchronization
+- **Type-Safe**: Full TypeScript support
 
 ---
 
@@ -282,22 +281,40 @@ caduceus/
 
 ---
 
-## Known Issues
+## Data Storage
 
-### better-sqlite3 Module Version
-Due to better-sqlite3 being a native module, you may encounter version conflicts between Node.js and Electron. If you see `ERR_DLOPEN_FAILED`:
+Caduceus uses **RxDB** with JSON file persistence for a modern offline-first experience:
 
-```bash
-# Rebuild for Electron
-pnpm rebuild:electron
+- **Storage Location**: User's application data directory
+  - Linux: `~/.config/Caduceus/rxdb-data/`
+  - Windows: `%APPDATA%/Caduceus/rxdb-data/`
+  - macOS: `~/Library/Application Support/Caduceus/rxdb-data/`
+- **Format**: Human-readable JSON files
+- **Auto-Save**: Every 5 seconds
+- **Backup**: Simply copy the `rxdb-data` folder
+- **Multi-Instance**: Supports multiple PCs per clinic
+- **Sync-Ready**: Architecture prepared for future cloud synchronization
 
-# Or force rebuild
-rm -rf node_modules/better-sqlite3/build
-npx electron-rebuild --version=35.0.2
+### Architecture
+
+```
+┌─────────────────┐     IPC      ┌──────────────────┐
+│  Renderer       │ ◄──────────► │  Main Process    │
+│  (RxDB)         │              │  (RxStorage)     │
+│                 │              │                  │
+│  - Services     │              │  - JSON files    │
+│  - React UI     │              │  - Persistence   │
+└─────────────────┘              └──────────────────┘
 ```
 
-### Future Solution
-We plan to migrate to **RxDB** or **ElectricSQL** for true offline-first architecture with automatic sync, eliminating native module compilation issues.
+### Benefits
+
+- ✅ **No Native Dependencies** - Pure JavaScript, no compilation issues
+- ✅ **Offline-First** - Works without internet
+- ✅ **Reactive** - Real-time UI updates
+- ✅ **Type-Safe** - Full TypeScript support
+- ✅ **Future-Proof** - Ready for cloud sync
+- ✅ **Multi-Platform** - Works on Windows, macOS, Linux
 
 ---
 
@@ -326,8 +343,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Tailwind CSS](https://tailwindcss.com/) - Styling system
 - [React](https://react.dev/) - UI library
 - [Vite](https://vitejs.dev/) - Build tool
-- [Drizzle ORM](https://orm.drizzle.team/) - Database ORM
-- [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) - SQLite driver
+- [RxDB](https://rxdb.info/) - Offline-first database
+- [RxDB Electron Plugin](https://rxdb.info/electron.html) - Electron integration
 
 ---
 
