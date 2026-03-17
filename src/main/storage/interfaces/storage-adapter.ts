@@ -1,13 +1,11 @@
 /**
  * Interface for storage adapters
- * Allows switching between different storage implementations
- * (JSON files, Supabase, PostgreSQL, etc.)
+ * Defines the contract for any storage implementation
  */
 
 export interface StorageAdapter {
   name: string;
   
-  // Initialize the storage (connect to DB, create files, etc.)
   initialize(): Promise<void>;
   
   // Collection operations
@@ -22,11 +20,5 @@ export interface StorageAdapter {
   export(): Promise<Record<string, any[]>>;
   import(data: Record<string, any[]>): Promise<void>;
   
-  // Cleanup
   close(): Promise<void>;
-}
-
-export interface StorageConfig {
-  type: "json" | "supabase" | "postgres" | "memory";
-  options?: Record<string, any>;
 }
